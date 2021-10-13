@@ -5,7 +5,7 @@ import "testing"
 func TestLogToJournal(t *testing.T) {
 	var cred = credentials{
 		address: "address",
-		name: "name",
+		name:    "name",
 	}
 	LogToJournal(cred)
 }
