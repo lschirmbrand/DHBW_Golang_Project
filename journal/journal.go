@@ -18,9 +18,16 @@ func check(e error) bool {
 	return true
 }
 
-func LogToJournal(cred credentials) bool {
+func LogToJournal(cred credentials, isTest bool) bool {
 	log := cred.address + "," + cred.name + ";\n"
-	f, e := os.OpenFile(returnFilename(), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	var filePath string
+	if !isTest {
+		filePath = returnFilename()
+	} else {
+		filePath = "../logs/log-temp-test-file.txt"
+	}
+	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+
 	if !check(e) {
 		return false
 	}
@@ -37,5 +44,5 @@ func LogToJournal(cred credentials) bool {
 
 func returnFilename() string {
 	currentTime := time.Now()
-	return "../logs/log-" + currentTime.Format("01-02-2006") + ".txt"
+	return "../logs/log-" + currentTime.Format("02-01-2006") + ".txt"
 }
