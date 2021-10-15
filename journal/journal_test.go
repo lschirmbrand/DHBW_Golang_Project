@@ -19,5 +19,3 @@ func TestLogToJournal(t *testing.T) {
 
 	assert.EqualValues(t, string(data), cred.address + "," + cred.name + ";\n")
 }
-
-func TestCheck
