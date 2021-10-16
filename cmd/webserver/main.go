@@ -20,7 +20,7 @@ func main() {
 
 	fmt.Printf("Starting server for checkin at port %v\n", *checkinPort)
 
-	if err := http.ListenAndServeTLS(":"+fmt.Sprint(*checkinPort), "resources/ssl/server.crt", "resources/ssl/server.key", checkinMux()); err != nil {
+	if err := http.ListenAndServeTLS(":"+fmt.Sprint(*checkinPort), "assets/ssl/server.crt", "assets/ssl/server.key", checkinMux()); err != nil {
 		log.Fatal(err)
 	}
 
