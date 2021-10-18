@@ -14,7 +14,7 @@
 <body>
     <div class="container">
 
-        <h1>Check-in to {{.PlaceName}}</h1>
+        <h1>Check-in to {{.Location}}</h1>
 
         <form method="post" action="checkout">
             <div class="mb-3">
@@ -27,7 +27,6 @@
                 <input name="street" type="text" id="street" class="form-control">
             </div>
 
-
             <div class="mb-3 row">
                 <div class="col">
                     <label for="plz" class="form-label">PLZ</label>
@@ -39,7 +38,7 @@
                 </div>
             </div>
 
-            <input type="text" name="place" hidden value="{{.PlaceName}}">
+            <input type="text" name="location" hidden value="{{.Location}}">
 
             <button class="btn btn-primary" type="submit">Einchecken</button>
         </form>

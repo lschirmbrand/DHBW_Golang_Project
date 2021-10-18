@@ -8,15 +8,15 @@ import (
 )
 
 type CheckInPageData struct {
-	PlaceName string
+	Location string
 }
 
 type CheckOutPageData struct {
-	PlaceName string
-	Name      string
-	Street    string
-	PLZ       string
-	Time      string
+	Location string
+	Name     string
+	Street   string
+	PLZ      string
+	Time     string
 }
 
 func checkinMux() http.Handler {
@@ -40,11 +40,11 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 		rw.Write([]byte("invalid token"))
 	}
 
-	placeName := r.URL.Query().Get("place")
+	location := r.URL.Query().Get("location")
 
 	tmpl := template.Must(template.ParseFiles("web/templates/checkin.html"))
 
-	data := CheckInPageData{PlaceName: placeName}
+	data := CheckInPageData{location}
 
 	tmpl.Execute(rw, data)
 }
@@ -56,11 +56,11 @@ func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("web/templates/checkout.html"))
 
 	data := CheckOutPageData{
-		PlaceName: r.PostForm.Get("place"),
-		Name:      r.PostFormValue("name"),
-		Street:    r.PostForm.Get("street"),
-		PLZ:       r.PostForm.Get("plz"),
-		Time:      time.Now().Format(time.RFC3339),
+		Location: r.PostForm.Get("location"),
+		Name:     r.PostFormValue("name"),
+		Street:   r.PostForm.Get("street"),
+		PLZ:      r.PostForm.Get("plz"),
+		Time:     time.Now().Format(time.RFC3339),
 	}
 
 	tmpl.Execute(rw, data)
