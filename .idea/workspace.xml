@@ -4,17 +4,27 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="37e07c14-dc67-48f5-bdc7-de6b0f42f972" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/QR_Web/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/pic/qr_code.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/QR_Web/pic/qr_code.jpg" afterDir="false" />
+    <list default="true" id="38fddf63-b5a9-4fd9-ac26-9e42ca011510" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/cmd/qr-web/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web/templates/qr-code.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/main.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/pic/qr_code.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/static/index.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/token/token.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/token/token.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/token/token_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/token/token_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
   </component>
   <component name="GOROOT" url="file://C:/Program Files/Go" />
   <component name="Git.Settings">
@@ -23,13 +33,14 @@
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
   </component>
-  <component name="ProjectId" id="1zlEY4EaRoMP4uWlkKCn4qocGPb" />
+  <component name="ProjectId" id="1zlYsc5L95ucBi8wiraxtvj7b5u" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -39,40 +50,42 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
   </component>
-  <component name="RunManager" selected="Go Test.TestVerifyToken in DHBW_Golang_Project/pkg/token">
+  <component name="RunManager" selected="Go Test.TestDateValidator in DHBW_Golang_Project/cmd/analysisTool">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
+      <kind value="PACKAGE" />
+      <package value="DHBW_Golang_Project" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="go build DHBW_Golang_Project/cmd/QR_Web" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+    <configuration name="go build DHBW_Golang_Project/cmd/qr-web" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="DHBW_Golang_Project/cmd/QR_Web" />
+      <package value="DHBW_Golang_Project/cmd/qr-web" />
       <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/cmd/QR_Web/main.go" />
+      <filePath value="$PROJECT_DIR$/cmd/qr-web/main.go" />
       <method v="2" />
     </configuration>
-    <configuration name="TestVerifyToken in DHBW_Golang_Project/pkg/token" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestDateValidator in DHBW_Golang_Project/cmd/analysisTool" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="DHBW_Golang_Project" />
-      <working_directory value="$PROJECT_DIR$/pkg/token" />
+      <working_directory value="$PROJECT_DIR$/cmd/analysisTool" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="DHBW_Golang_Project/pkg/token" />
+      <package value="DHBW_Golang_Project/cmd/analysisTool" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestVerifyToken\E$" />
+      <pattern value="^\QTestDateValidator\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="DIRECTORY" />
+      <package value="DHBW_Golang_Project" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -80,14 +93,26 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestVerifyToken in DHBW_Golang_Project/pkg/token" />
-        <item itemvalue="Go Build.go build DHBW_Golang_Project/cmd/QR_Web" />
+        <item itemvalue="Go Test.TestDateValidator in DHBW_Golang_Project/cmd/analysisTool" />
+        <item itemvalue="Go Build.go build DHBW_Golang_Project/cmd/qr-web" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

@@ -5,9 +5,7 @@ import (
 )
 
 const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 type Token string
-
 var tokenMap = map[Token]string{}
 
 func VerifyToken(token Token) bool {
@@ -24,7 +22,7 @@ func CreateToken(location string) Token {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 
-	if len(tokenMap) == 2{
+	if len(tokenMap) == 2 {
 		deleteFirstToken()
 	}
 
@@ -34,7 +32,7 @@ func CreateToken(location string) Token {
 }
 
 func deleteFirstToken() {
-	for k, _ := range tokenMap {
+	for k := range tokenMap {
 		delete(tokenMap, k)
 		break
 	}
