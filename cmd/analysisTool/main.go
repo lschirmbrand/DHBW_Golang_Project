@@ -4,7 +4,9 @@ import (
 	"DHBW_Golang_Project/pkg/journal"
 	"bufio"
 	"fmt"
-	"log"
+	"io/ioutil"
+	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -21,63 +23,107 @@ type result struct {
 }
 
 const (
-	LOCATION           Operation = "Location"
-	VISITOR            Operation = "Visitor"
-	LOCATIONID         Operation = "1"
-	VISITORID          Operation = "2"
-	PATHTOLOGS                   = "logs/log-"
-	PATHTOCSV                    = "logs/export-"
-	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
+	Location Operation = "1"
+	Person   Operation = "2"
 )
 
 func main() {
-	startAnalyticalToolDialog()
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Analyse Tool")
+	fmt.Println("-------------")
+
+	date := dateInputHandler(reader)
+	operation := operationInputHandler(reader)
+	filePath := buildFilePath(date)
+
+	if _, err := os.Stat(filePath); err == nil {
+		content := *readDataFromFile(filePath)
+		data := *contentToArray(&content)
+
+		if operation == string(Person) {
+			analysePersonsForLocation("", &data)
+		} else if operation == string(Location) {
+			analyseLocationsForPerson("", &data)
+		}
+
+	} else {
+		fmt.Println("No logs exist for this day.")
+	}
 }
 
-func check(e error) bool {
-	if e != nil {
-		log.Fatalln(e)
-		return false
+func dateInputHandler(reader *bufio.Reader) string {
+	fmt.Println("Enter Date in format DD-MM-YYYY: ")
+
+	for {
+		text, _ := reader.ReadString('\n')
+		ok, err := validateDateInput(text)
+		check(err)
+		if ok {
+			return trimStringBasedOnOS(text)
+		}
+		fmt.Println("Format wrong or pointless. Retry.")
 	}
-	return true
+}
+
+func operationInputHandler(reader *bufio.Reader) string {
+	fmt.Println("Would you like to analyse:")
+	fmt.Println("Locations for a person \t[1]")
+	fmt.Println("Visitor for a location \t[2]")
+
+	for {
+		text, _ := reader.ReadString('\n')
+		ok, err := validateOperationInput(text)
+		check(err)
+		if ok {
+			return trimStringBasedOnOS(text)
+		}
+		fmt.Println("Input was wrong. Retry.")
+	}
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func validateDateInput(date string) (bool, error) {
+	return regexp.Match("^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)", []byte(date))
+}
+
+func validateOperationInput(operation string) (bool, error) {
+	return regexp.Match("\\b[1-2]\\b", []byte(operation))
+}
+
+func readDataFromFile(filePath string) *[]string {
+	text, err := ioutil.ReadFile(filePath)
+	check(err)
+	out := strings.Split(string(text), "\n")
+	return &out
 }
 
 func buildFilePath(date string) string {
-	return PATHTOLOGS + date + ".txt"
+	var sb strings.Builder
+	sb.WriteString("../../logs/log-")
+	sb.WriteString(date)
+	sb.WriteString(".txt")
+	return sb.String()
 }
 
-func analyseLocationsForPerson(visitor string, data *[]journal.Credentials, reader *bufio.Reader) {
-	s := make([]string, 0)
-	for _, entry := range *data {
-		if strings.EqualFold(entry.Name, visitor) {
-			s = append(s, entry.Location)
-		}
-	}
-	assertQueryExport(s, reader, VISITOR, visitor)
+func analyseLocationsForPerson(person string, data *[]journal.Credentials) {
+
 }
 
-func analysePersonsForLocation(location string, data *[]journal.Credentials, reader *bufio.Reader) {
-	s := make([]string, 0)
-	for _, entry := range *data {
-		if strings.EqualFold(entry.Location, location) {
-			s = append(s, entry.Name)
-		}
-	}
-	assertQueryExport(s, reader, LOCATION, location)
+func analysePersonsForLocation(location string, data *[]journal.Credentials) {
+
 }
 
-func assertQueryExport(s []string, reader *bufio.Reader, operation Operation, selector string) {
-	qLen := queryLengthHandler(s)
-	if qLen > 0 {
-		if exportHandler(reader, qLen) {
-			logToCSVFile(s, selector, string(operation))
-		} else {
-			promptFormatter(1)
-			fmt.Println("Results of query wont get exported. \nAborting.")
-		}
-	} else {
-		fmt.Println("No results were found for the queried selector.")
+func trimStringBasedOnOS(text string) string {
+	if runtime.GOOS == "windows" {
+		text = strings.TrimSuffix(text, "\n")
+		return strings.TrimSuffix(text, "\r")
 	}
+	return strings.TrimSuffix(text, "\n")
 }
 
 func contentToArray(content *[]string) *[]journal.Credentials {
@@ -104,16 +150,16 @@ func splitDataRowToCells(row string) journal.Credentials {
 	var cred journal.Credentials
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
-	if len(cells) > 1 {
-		cred.Login = strings.EqualFold(trimStringBasedOnOS(strings.ToLower(cells[0]), false), "login")
-		cred.Name = cells[1]
-		cred.Address = cells[2]
-		cred.Location = strings.ToLower(cells[3])
+	if len(cells) > 0 {
+		cred.Name = cells[0]
+		cred.Address = cells[1]
+		cred.Location = cells[2]
 		var err error
-		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[4])
+		cred.TimeCome, err = time.Parse("02-01-2006 15:04:05", cells[3])
 		check(err)
-		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[5])
+		cred.TimeGone, err = time.Parse("02-01-2006 15:04:05", cells[4])
 		check(err)
+
 	}
 	return cred
 }
@@ -121,7 +167,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 func jobFactory(content []string) <-chan job {
 	jobs := make(chan job)
 	go func() {
-		for i := 0; i < len(content); i++ {
+		for i := 0; i < len(content)-1; i++ {
 			jobs <- job{content[i]}
 		}
 		close(jobs)
@@ -149,19 +195,4 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 	}()
 
 	return results, done
-}
-
-func trimStringBasedOnOS(text string, isSuffix bool) string {
-	isWindows := runtime.GOOS == "windows"
-	if isSuffix {
-		if isWindows {
-			text = strings.TrimSuffix(text, "\x0a\x0d")
-			return strings.TrimSuffix(text, "\r\n")
-		}
-		text = strings.TrimSuffix(text, "\x0d")
-		return strings.TrimSuffix(text, "\n")
-	} else {
-		text = strings.TrimPrefix(text, "\x0d")
-		return strings.TrimPrefix(text, "\n")
-	}
 }
