@@ -42,10 +42,10 @@ func main() {
 
 	go reloadQR()
 
-	/*if err := http.ListenAndServeTLS(":"+startVariable.Port, "assets/ssl/server.crt", "assets/ssl/server.key", qrMux()); err != nil {
+	if err := http.ListenAndServeTLS(":"+startVariable.Port, "../../assets/ssl/server.crt", "../../assets/ssl/server.key", qrMux()); err != nil {
 		log.Fatal(err)
-	}*/
-	openServer()
+	}
+	//openServer()
 }
 
 func reloadQR() {
@@ -64,10 +64,12 @@ func reloadQR() {
 
 
 func handleQR(w http.ResponseWriter, r *http.Request){
-	/*tmpl := template.Must(template.ParseFiles("web/templates/qr-code.html"))
+	tmpl := template.Must(template.ParseFiles("../../web/templates/qr-code.html"))
 
-	tmpl.Execute(w, startVariable)*/
-	templateQR.ExecuteTemplate(w, "qrCode", startVariable)
+	if err := tmpl.Execute(w, startVariable); err != nil{
+		log.Fatal(err)
+	}
+	//templateQR.ExecuteTemplate(w, "qrCode", startVariable)
 }
 
 func qrMux() http.Handler {

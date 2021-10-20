@@ -5,14 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="38fddf63-b5a9-4fd9-ac26-9e42ca011510" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/cmd/qr-web/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/templates/qr-code.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/main.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/pic/qr_code.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/QR_Web/static/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/token/token.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/token/token.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/qr-web/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/qr-web/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +45,7 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
   </component>
-  <component name="RunManager" selected="Go Test.TestDateValidator in DHBW_Golang_Project/cmd/analysisTool">
+  <component name="RunManager" selected="Go Test.TestVerifyToken in DHBW_Golang_Project/pkg/token">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
@@ -81,6 +76,18 @@
       <pattern value="^\QTestDateValidator\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="TestVerifyToken in DHBW_Golang_Project/pkg/token" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="DHBW_Golang_Project" />
+      <working_directory value="$PROJECT_DIR$/pkg/token" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="DHBW_Golang_Project/pkg/token" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestVerifyToken\E$" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
@@ -93,6 +100,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestVerifyToken in DHBW_Golang_Project/pkg/token" />
         <item itemvalue="Go Test.TestDateValidator in DHBW_Golang_Project/cmd/analysisTool" />
         <item itemvalue="Go Build.go build DHBW_Golang_Project/cmd/qr-web" />
       </list>
