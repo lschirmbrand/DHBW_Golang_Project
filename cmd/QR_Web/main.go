@@ -1,82 +1,85 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/skip2/go-qrcode"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
 )
 
-var portQR = "8142"
-
-
-
-
-/*func mainHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/hello" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET"{
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+type startVariableStruct struct {
+	RefreshTime int
+	UrlLink string
 }
 
-func main() {
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
-	http.HandleFunc("/hello", mainHandler)
+var startVariable startVariableStruct
+var templateQR = template.Must(
+	template.New("qrCode").Parse(`<!DOCTYPE html>
+		<html lang="en">
+			<head>
+    			<meta charset="UTF-8">
+    			<meta http-equiv="refresh" content="{{.RefreshTime}}; URL=http://localhost:{{.UrlLink}}/">
+			</head>
+			<body>
+				<img src="../pic/qr_code.jpg" alt="QR-Code" width="256" height="256">
+			</body>
+		</html>`))
 
-	fmt.Print("Starting server at Port 8844\n")
-	if err := http.ListenAndServe(":8844", nil); err != nil{
-		log.Fatal(err)
-	}
-}*/
+func main() {
+	var rT int
+	var uL string
+	flag.IntVar(&rT, "refreshTime", 60, "Start variable for refresh time.")
+	flag.StringVar(&uL, "urlLink", "8142", "Start variable for URL-Link")
+	flag.Parse()
+
+	startVariable = startVariableStruct{RefreshTime: rT, UrlLink: uL}
+
+	go reloadQR()
+	OpenServer()
+
+}
 
 
 func reloadQR() {
-	c := true
-	ticker := time.NewTicker(5 * time.Second)
-	for range ticker.C {
+	ticker := time.NewTicker(time.Duration(startVariable.RefreshTime * 1000000000))
+	for _ = range ticker.C {
+		tokenURL := "localhost:" + startVariable.UrlLink + "?token=" +  string(randToken())
+		err := qrcode.WriteFile(tokenURL, qrcode.Medium, 256, "./pic/qr_code.jpg")
 
-		if c {
-			fmt.Println("google")
-			err := qrcode.WriteFile("https://google.org", qrcode.Medium, 256, "./pic/qr_code.jpg")
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			c = false
-		} else {
-			fmt.Println("example")
-			err := qrcode.WriteFile("https://example.org", qrcode.Medium, 256, "./pic/qr_code.jpg")
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			c = true
+		if err != nil {
+			log.Fatal(err)
 		}
+		fmt.Println(tokenURL)
 	}
 }
 
-func OpenServer(){
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
+func randToken() []byte{
+	b := make([]byte, 8)
+	_, err := rand.Read(b)
+
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	return b
+}
+
+func handleQR(w http.ResponseWriter, r *http.Request){
+	templateQR.ExecuteTemplate(w, "qrCode", startVariable)
+}
+
+func OpenServer() {
+
 	http.Handle("/pic/", http.StripPrefix("/pic/", http.FileServer(http.Dir("./pic"))))
 
-	fmt.Printf("Starting server at port %v\n", portQR)
-	if err := http.ListenAndServe(":"+portQR, nil); err != nil {
+	http.HandleFunc("/", handleQR)
+	fmt.Printf("Starting server at port %v\n", startVariable.UrlLink)
+	if err := http.ListenAndServe(":"+startVariable.UrlLink, nil); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func main(){
 
-		go reloadQR()
-
-		OpenServer()
-
-}
