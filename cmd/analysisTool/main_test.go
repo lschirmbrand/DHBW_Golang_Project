@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
@@ -57,14 +58,18 @@ func TestTrimStringBasedOnOS(t *testing.T) {
 }
 
 func TestContentToArray(t *testing.T) {
-	var content = strings.Split("address1,name1;\naddress2,name2;\naddress3,name3;\n", "\n")
-	contentArray := *contentToArray(content)
-	assert.EqualValues(t, contentArray[0][0], "address1")
-	assert.EqualValues(t, contentArray[0][1], "name1")
-	assert.EqualValues(t, contentArray[1][0], "address2")
-	assert.EqualValues(t, contentArray[1][1], "name2")
-	assert.EqualValues(t, contentArray[2][0], "address3")
-	assert.EqualValues(t, contentArray[2][1], "name3")
+	var content = strings.Split("name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\nname2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;\n", "\n")
+	contentArray := *contentToArray(&content)
+	assert.EqualValues(t, contentArray[0].Name, "name1")
+	assert.EqualValues(t, contentArray[0].Address, "address1")
+	assert.EqualValues(t, contentArray[0].Location, "location1")
+	assert.EqualValues(t, contentArray[0].TimeCome.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeGone.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[1].Name, "name2")
+	assert.EqualValues(t, contentArray[1].Address, "address2")
+	assert.EqualValues(t, contentArray[1].Location, "location2")
+	assert.EqualValues(t, contentArray[1].TimeCome.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeGone.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:41")
 }
 
 func TestReadDataFromFile(t *testing.T) {
@@ -80,4 +85,21 @@ func TestReadDataFromFile(t *testing.T) {
 	for i := 0; i < len(out)-1; i++ {
 		assert.EqualValues(t, expected[i], out[i])
 	}
+}
+
+func BenchmarkPerformanceOfData(b *testing.B) {
+	fileContent := "name,address,location,20-10-2021 09:44:25,20-10-2021 09:44:25;\nname,address,location,20-10-2021 09:44:41,20-10-2021 09:44:41;\nname,address,location,20-10-2021 10:07:13,20-10-2021 10:07:13;\nname,address,location,20-10-2021 10:07:18,20-10-2021 10:07:18;\nname,address,location,20-10-2021 10:07:28,20-10-2021 10:07:28;\nname,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;\nname,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;"
+	for n := 0; n < b.N; n++ {
+		content := strings.Split(fileContent, "\n")
+		contentToArray(&content)
+	}
+}
+
+func TestPerformanceOfData(b *testing.T) {
+	filePath := buildFilePath("20-10-2021")
+	content := *readDataFromFile(filePath)
+	ret := contentToArray(&content)
+	fmt.Println(ret)
+
+	//contentToArray(&content)
 }
