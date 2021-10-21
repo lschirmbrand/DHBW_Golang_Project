@@ -3,25 +3,37 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/token"
 	"context"
+	"html/template"
 	"net/http"
-	"text/template"
+	"path"
 	"time"
 )
 
 type CheckInPageData struct {
+	Person
 	Location string
 }
 
 type CheckOutPageData struct {
+	Person
 	Location string
-	Name     string
-	Street   string
-	PLZ      string
 	Time     string
 }
 
+type Person struct {
+	Name   string
+	Street string
+	PLZ    string
+	City   string
+}
+
+var checkInTemplate *template.Template
+var checkOutTemplate *template.Template
+
 func checkinMux() http.Handler {
 	mux := http.NewServeMux()
+
+	parseTemplates("web/templates")
 
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkout", checkOutHandler)
@@ -32,32 +44,98 @@ func checkinMux() http.Handler {
 	return mux
 }
 
+func parseTemplates(templateDir string) {
+	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
+	checkOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkOut.html")))
+}
+
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	location := r.Context().Value("location").(string)
 
-	tmpl := template.Must(template.ParseFiles("web/templates/checkin.html"))
+	p := readPersonFromCookies(r)
+	data := CheckInPageData{Person: *p, Location: location}
 
-	data := CheckInPageData{location}
-
-	tmpl.Execute(rw, data)
+	checkInTemplate.Execute(rw, data)
 }
 
 func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	tmpl := template.Must(template.ParseFiles("web/templates/checkout.html"))
+	p := Person{
+		Name:   r.PostFormValue("name"),
+		Street: r.PostFormValue("street"),
+		PLZ:    r.PostFormValue("plz"),
+		City:   r.PostFormValue("city"),
+	}
 
 	data := CheckOutPageData{
+		Person:   p,
 		Location: r.PostForm.Get("location"),
-		Name:     r.PostFormValue("name"),
-		Street:   r.PostForm.Get("street"),
-		PLZ:      r.PostForm.Get("plz"),
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
-	tmpl.Execute(rw, data)
+	savePersonToCookies(rw, &p)
+
+	checkOutTemplate.Execute(rw, data)
+
+}
+
+func savePersonToCookies(rw http.ResponseWriter, p *Person) {
+	nameCookie := http.Cookie{
+		Name:  "name",
+		Value: p.Name,
+	}
+	streetCookie := http.Cookie{
+		Name:  "street",
+		Value: p.Street,
+	}
+	plzCookie := http.Cookie{
+		Name:  "plz",
+		Value: p.PLZ,
+	}
+	cityCookie := http.Cookie{
+		Name:  "city",
+		Value: p.City,
+	}
+
+	http.SetCookie(rw, &nameCookie)
+	http.SetCookie(rw, &streetCookie)
+	http.SetCookie(rw, &plzCookie)
+	http.SetCookie(rw, &cityCookie)
+}
+
+func readPersonFromCookies(r *http.Request) *Person {
+	p := Person{
+		Name:   "",
+		Street: "",
+		PLZ:    "",
+		City:   "",
+	}
+
+	name, err := r.Cookie("name")
+	if err == nil {
+		p.Name = name.Value
+	}
+
+	street, err := r.Cookie("street")
+	if err == nil {
+		p.Street = street.Value
+	}
+
+	plz, err := r.Cookie("plz")
+	if err == nil {
+		p.PLZ = plz.Value
+	}
+
+	city, err := r.Cookie("city")
+	if err == nil {
+		p.City = city.Value
+	}
+
+	return &p
+
 }
 
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {

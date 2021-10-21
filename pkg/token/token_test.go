@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVerifyToken(t *testing.T) {
+func TestValidateToken(t *testing.T) {
 	tok := Token("test")
 
 	valid, _ := Validate(tok)
