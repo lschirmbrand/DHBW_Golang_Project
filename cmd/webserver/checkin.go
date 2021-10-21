@@ -2,6 +2,7 @@ package main
 
 import (
 	"DHBW_Golang_Project/pkg/token"
+	"context"
 	"net/http"
 	"text/template"
 	"time"
@@ -22,7 +23,7 @@ type CheckOutPageData struct {
 func checkinMux() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/checkin", checkInHandler)
+	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkout", checkOutHandler)
 
 	fs := http.FileServer(http.Dir("web/static"))
@@ -33,14 +34,7 @@ func checkinMux() http.Handler {
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	t := token.Token(r.URL.Query().Get("token"))
-	isValid := token.VerifyToken(t)
-
-	if !isValid {
-		rw.Write([]byte("invalid token"))
-	}
-
-	location := r.URL.Query().Get("location")
+	location := r.Context().Value("location").(string)
 
 	tmpl := template.Must(template.ParseFiles("web/templates/checkin.html"))
 
@@ -64,4 +58,19 @@ func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Execute(rw, data)
+}
+
+func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		t := token.Token(r.URL.Query().Get("token"))
+		if valid, location := validator(t); valid {
+			ctx := context.WithValue(r.Context(), "location", location)
+
+			handler(w, r.WithContext(ctx))
+		} else {
+			http.Error(w,
+				http.StatusText(http.StatusBadRequest),
+				http.StatusBadRequest)
+		}
+	}
 }
