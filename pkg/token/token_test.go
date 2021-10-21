@@ -9,5 +9,7 @@ import (
 func TestVerifyToken(t *testing.T) {
 	tok := Token("test")
 
-	assert.True(t, VerifyToken(tok))
+	valid, _ := Validate(tok)
+
+	assert.True(t, valid)
 }
