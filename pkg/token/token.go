@@ -6,8 +6,10 @@ import (
 
 const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 type Token string
+type Validator func(t Token) (bool, string)
 var tokenMap = map[Token]string{}
-func Validator(token Token) (bool, string) {
+
+func Validate(token Token) (bool, string) {
 	if location, ok := tokenMap[token]; ok {
 		return true, location
 	} else {
