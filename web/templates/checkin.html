@@ -19,22 +19,22 @@
         <form method="post" action="checkout">
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
-                <input name="name" type="text" id="name" class="form-control">
+                <input name="name" type="text" id="name" class="form-control" value="{{.Name}}">
             </div>
 
             <div class="mb-3">
                 <label for="street" class="form-label">Straße und Hausnummer</label>
-                <input name="street" type="text" id="street" class="form-control">
+                <input name="street" type="text" id="street" class="form-control" value="{{.Street}}">
             </div>
 
             <div class="mb-3 row">
                 <div class="col">
                     <label for="plz" class="form-label">PLZ</label>
-                    <input name="plz" type="text" id="plz" class="form-control">
+                    <input name="plz" type="text" id="plz" class="form-control" value="{{.PLZ}}">
                 </div>
                 <div class="col">
                     <label for="city" class="form-label">Ort</label>
-                    <input name="city" type="text" id="city" class="form-control">
+                    <input name="city" type="text" id="city" class="form-control" value="{{.City}}">
                 </div>
             </div>
 

@@ -7,12 +7,11 @@ import (
 const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 type Token string
 var tokenMap = map[Token]string{}
-
-func VerifyToken(token Token) bool {
-	if _, ok := tokenMap[token]; ok {
-		return true
+func Validator(token Token) (bool, String) {
+	if location, ok := tokenMap[token]; ok {
+		return true, location
 	} else {
-		return false
+		return false, ""
 	}
 }
 
