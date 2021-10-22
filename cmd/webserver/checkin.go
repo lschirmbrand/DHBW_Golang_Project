@@ -27,6 +27,12 @@ type Person struct {
 	City   string
 }
 
+type contextKey string
+
+const (
+	locationContextKey contextKey = "location"
+)
+
 var checkInTemplate *template.Template
 var checkOutTemplate *template.Template
 
@@ -51,7 +57,7 @@ func parseTemplates(templateDir string) {
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	location := r.Context().Value("location").(string)
+	location := r.Context().Value(locationContextKey).(string)
 
 	p := readPersonFromCookies(r)
 	data := CheckInPageData{Person: *p, Location: location}
@@ -142,7 +148,7 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := token.Token(r.URL.Query().Get("token"))
 		if valid, location := validator(t); valid {
-			ctx := context.WithValue(r.Context(), "location", location)
+			ctx := context.WithValue(r.Context(), locationContextKey, location)
 
 			handler(w, r.WithContext(ctx))
 		} else {
