@@ -28,9 +28,14 @@ type Person struct {
 }
 
 type contextKey string
+type cookieName string
 
 const (
 	locationContextKey contextKey = "location"
+	nameCookieName     cookieName = "name"
+	streetCookieName   cookieName = "street"
+	plzCookieName      cookieName = "plz"
+	cityCookieName     cookieName = "city"
 )
 
 var checkInTemplate *template.Template
@@ -70,10 +75,10 @@ func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	p := Person{
-		Name:   r.PostFormValue("name"),
-		Street: r.PostFormValue("street"),
-		PLZ:    r.PostFormValue("plz"),
-		City:   r.PostFormValue("city"),
+		Name:   r.PostFormValue(string(nameCookieName)),
+		Street: r.PostFormValue(string(streetCookieName)),
+		PLZ:    r.PostFormValue(string(plzCookieName)),
+		City:   r.PostFormValue(string(cityCookieName)),
 	}
 
 	data := CheckOutPageData{
@@ -90,19 +95,19 @@ func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 func savePersonToCookies(rw http.ResponseWriter, p *Person) {
 	nameCookie := http.Cookie{
-		Name:  "name",
+		Name:  string(nameCookieName),
 		Value: p.Name,
 	}
 	streetCookie := http.Cookie{
-		Name:  "street",
+		Name:  string(streetCookieName),
 		Value: p.Street,
 	}
 	plzCookie := http.Cookie{
-		Name:  "plz",
+		Name:  string(plzCookieName),
 		Value: p.PLZ,
 	}
 	cityCookie := http.Cookie{
-		Name:  "city",
+		Name:  string(cityCookieName),
 		Value: p.City,
 	}
 
@@ -120,22 +125,22 @@ func readPersonFromCookies(r *http.Request) *Person {
 		City:   "",
 	}
 
-	name, err := r.Cookie("name")
+	name, err := r.Cookie(string(nameCookieName))
 	if err == nil {
 		p.Name = name.Value
 	}
 
-	street, err := r.Cookie("street")
+	street, err := r.Cookie(string(streetCookieName))
 	if err == nil {
 		p.Street = street.Value
 	}
 
-	plz, err := r.Cookie("plz")
+	plz, err := r.Cookie(string(plzCookieName))
 	if err == nil {
 		p.PLZ = plz.Value
 	}
 
-	city, err := r.Cookie("city")
+	city, err := r.Cookie(string(cityCookieName))
 	if err == nil {
 		p.City = city.Value
 	}

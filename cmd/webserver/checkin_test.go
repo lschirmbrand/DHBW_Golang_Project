@@ -94,19 +94,19 @@ func TestReadPersonFromCookies(t *testing.T) {
 	}
 
 	nameCookie := http.Cookie{
-		Name:  "name",
+		Name:  string(nameCookieName),
 		Value: p.Name,
 	}
 	streetCookie := http.Cookie{
-		Name:  "street",
+		Name:  string(streetCookieName),
 		Value: p.Street,
 	}
 	plzCookie := http.Cookie{
-		Name:  "plz",
+		Name:  string(plzCookieName),
 		Value: p.PLZ,
 	}
 	cityCookie := http.Cookie{
-		Name:  "city",
+		Name:  string(cityCookieName),
 		Value: p.City,
 	}
 
