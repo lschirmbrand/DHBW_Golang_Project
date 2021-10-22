@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"runtime"
@@ -23,8 +24,10 @@ type result struct {
 }
 
 const (
-	Location Operation = "1"
-	Person   Operation = "2"
+	Location           Operation = "1"
+	Person             Operation = "2"
+	PATHTOLOGS                   = "../../logs/log-"
+	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
 )
 
 func main() {
@@ -41,9 +44,15 @@ func main() {
 		data := *contentToArray(&content)
 
 		if operation == string(Person) {
-			analysePersonsForLocation("", &data)
+			request, ok := searchRequestHandler(reader, "person")
+			if ok {
+				analysePersonsForLocation(request, &data)
+			}
 		} else if operation == string(Location) {
-			analyseLocationsForPerson("", &data)
+			request, ok := searchRequestHandler(reader, "location")
+			if ok {
+				analyseLocationsForPerson(request, &data)
+			}
 		}
 
 	} else {
@@ -52,14 +61,15 @@ func main() {
 }
 
 func dateInputHandler(reader *bufio.Reader) string {
-	fmt.Println("Enter Date in format DD-MM-YYYY: ")
+	fmt.Println("Enter Date in format YYYY-MM-DD: ")
 
 	for {
 		text, _ := reader.ReadString('\n')
+		text = trimStringBasedOnOS(text)
 		ok, err := validateDateInput(text)
 		check(err)
 		if ok {
-			return trimStringBasedOnOS(text)
+			return text
 		}
 		fmt.Println("Format wrong or pointless. Retry.")
 	}
@@ -81,14 +91,27 @@ func operationInputHandler(reader *bufio.Reader) string {
 	}
 }
 
-func check(e error) {
-	if e != nil {
-		panic(e)
+func searchRequestHandler(reader *bufio.Reader, operation string) (string, bool) {
+	fmt.Println("You requested to search by: " + operation)
+	fmt.Println("Please enter the keyword you are searching for:")
+	input, e := reader.ReadString('\n')
+	if check(e) {
+		return input, true
 	}
+	return "", false
+}
+
+func check(e error) bool {
+	if e != nil {
+		log.Fatalln(e)
+		return false
+	}
+	return true
 }
 
 func validateDateInput(date string) (bool, error) {
-	return regexp.Match("^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)", []byte(date))
+	fmt.Println(date)
+	return regexp.Match("^(([19|20].(0[1-9]|[1-9][1-9])))[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])$", []byte(date))
 }
 
 func validateOperationInput(operation string) (bool, error) {
@@ -103,15 +126,22 @@ func readDataFromFile(filePath string) *[]string {
 }
 
 func buildFilePath(date string) string {
-	var sb strings.Builder
-	sb.WriteString("../../logs/log-")
-	sb.WriteString(date)
-	sb.WriteString(".txt")
-	return sb.String()
+	return PATHTOLOGS + date + ".txt"
 }
 
 func analyseLocationsForPerson(person string, data *[]journal.Credentials) {
+	s := make([]journal.Credentials, 0)
+	for _, entry := range *data {
+		if strings.Compare(entry.Name,strings.ToLower(person)) == 0 {
+			fmt.Println(entry.Name)
+			s = append(s, entry)
+		}
+	}
+	fmt.Println(len(s))
 
+	for _, entry := range s {
+		fmt.Println(entry.Location)
+	}
 }
 
 func analysePersonsForLocation(location string, data *[]journal.Credentials) {
@@ -120,8 +150,7 @@ func analysePersonsForLocation(location string, data *[]journal.Credentials) {
 
 func trimStringBasedOnOS(text string) string {
 	if runtime.GOOS == "windows" {
-		text = strings.TrimSuffix(text, "\n")
-		return strings.TrimSuffix(text, "\r")
+		return strings.TrimSuffix(text, "\r\n")
 	}
 	return strings.TrimSuffix(text, "\n")
 }
@@ -151,15 +180,14 @@ func splitDataRowToCells(row string) journal.Credentials {
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
 	if len(cells) > 0 {
-		cred.Name = cells[0]
+		cred.Name = strings.ToLower(cells[0])
 		cred.Address = cells[1]
-		cred.Location = cells[2]
+		cred.Location = strings.ToLower(cells[2])
 		var err error
-		cred.TimeCome, err = time.Parse("02-01-2006 15:04:05", cells[3])
+		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[3])
 		check(err)
-		cred.TimeGone, err = time.Parse("02-01-2006 15:04:05", cells[4])
+		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[4])
 		check(err)
-
 	}
 	return cred
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
@@ -11,18 +10,20 @@ import (
 )
 
 func TestDateValidator(t *testing.T) {
-	res, _ := validateDateInput("01-01-1111")
+	res, _ := validateDateInput("111-01-01")
 	assert.False(t, res)
-	res, _ = validateDateInput("01-13-2021")
+	res, _ = validateDateInput("2021-13-01")
 	assert.False(t, res)
-	res, _ = validateDateInput("32-10-2021")
+	res, _ = validateDateInput("2021-10-32")
 	assert.False(t, res)
-	res, _ = validateDateInput("13-10-2021")
+	res, _ = validateDateInput("2021-10-13")
 	assert.True(t, res)
-	res, _ = validateDateInput("13.10.2021")
+	res, _ = validateDateInput("2021.10.13")
 	assert.False(t, res)
-	res, _ = validateDateInput("13/10/2021")
+	res, _ = validateDateInput("2021/10/13")
 	assert.False(t, res)
+	res, _ = validateDateInput("2021-10-22")
+	assert.True(t, res)
 }
 
 func TestOperationValidator(t *testing.T) {
@@ -63,13 +64,13 @@ func TestContentToArray(t *testing.T) {
 	assert.EqualValues(t, contentArray[0].Name, "name1")
 	assert.EqualValues(t, contentArray[0].Address, "address1")
 	assert.EqualValues(t, contentArray[0].Location, "location1")
-	assert.EqualValues(t, contentArray[0].TimeCome.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:25")
-	assert.EqualValues(t, contentArray[0].TimeGone.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
 	assert.EqualValues(t, contentArray[1].Name, "name2")
 	assert.EqualValues(t, contentArray[1].Address, "address2")
 	assert.EqualValues(t, contentArray[1].Location, "location2")
-	assert.EqualValues(t, contentArray[1].TimeCome.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:41")
-	assert.EqualValues(t, contentArray[1].TimeGone.Format("02-01-2006 15:04:05"), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
 func TestReadDataFromFile(t *testing.T) {
@@ -93,13 +94,4 @@ func BenchmarkPerformanceOfData(b *testing.B) {
 		content := strings.Split(fileContent, "\n")
 		contentToArray(&content)
 	}
-}
-
-func TestPerformanceOfData(b *testing.T) {
-	filePath := buildFilePath("20-10-2021")
-	content := *readDataFromFile(filePath)
-	ret := contentToArray(&content)
-	fmt.Println(ret)
-
-	//contentToArray(&content)
 }
