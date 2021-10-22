@@ -11,9 +11,9 @@ func TestValidateToken(t *testing.T) {
 	tok2 := CreateToken("DE")
 	tok3 := CreateToken("ENG")
 
-valid1,_ := Validate(tok1)
-valid2,_ := Validate(tok2)
-valid3,_ := Validate(tok3)
+	valid1,_ := Validate(tok1)
+	valid2,_ := Validate(tok2)
+	valid3,_ := Validate(tok3)
 	assert.False(t, valid1)
 	assert.True(t, valid2)
 	assert.True(t, valid3)

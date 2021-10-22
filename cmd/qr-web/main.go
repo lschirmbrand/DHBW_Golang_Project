@@ -57,7 +57,6 @@ func reloadQR() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		//fmt.Println(checkinUrl)
 	}
 }
 
@@ -69,7 +68,6 @@ func handleQR(w http.ResponseWriter, r *http.Request){
 	if err := tmpl.Execute(w, startVariable); err != nil{
 		log.Fatal(err)
 	}
-	//templateQR.ExecuteTemplate(w, "qrCode", startVariable)
 }
 
 func qrMux() http.Handler {
@@ -80,16 +78,6 @@ func qrMux() http.Handler {
 	fmt.Printf("Starting server at port %v\n", startVariable.Port)
 
 	return mux
-}
-
-func openServer(){
-	http.Handle("/pic/", http.StripPrefix("/pic/", http.FileServer(http.Dir("./pic"))))
-
-	http.HandleFunc("/", handleQR)
-	fmt.Printf("Starting server at port %v\n", startVariable.Port)
-	if err := http.ListenAndServe(":"+startVariable.Port, nil); err != nil {
-		log.Fatal(err)
-	}
 }
 
 
