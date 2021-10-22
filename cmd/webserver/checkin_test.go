@@ -17,7 +17,7 @@ func createServerValidationWrapper(validator token.Validator) *httptest.Server {
 		tokenValidationWrapper(
 			validator,
 			func(w http.ResponseWriter, r *http.Request) {
-				location := r.Context().Value("location").(string)
+				location := r.Context().Value(locationContextKey).(string)
 				fmt.Fprintln(w, location)
 			}))
 }
@@ -126,7 +126,7 @@ func TestCheckinHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), "location", "TestLocation")
+	ctx := context.WithValue(req.Context(), locationContextKey, "TestLocation")
 
 	recorder := httptest.NewRecorder()
 
