@@ -32,7 +32,7 @@ func TestReturnCreditsToString(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-	assert.EqualValues(t, returnCreditsToString(&cred), cred.Name+","+cred.Address+","+cred.Location+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, returnCreditsToString(&cred, true), "in,"+cred.Name+","+cred.Address+","+cred.Location+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestLogTestExample(t *testing.T) {

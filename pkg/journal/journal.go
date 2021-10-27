@@ -8,6 +8,7 @@ import (
 )
 
 type Credentials struct {
+	Login    bool
 	Name     string
 	Address  string
 	Location string
@@ -27,7 +28,7 @@ func check(e error) bool {
 	return true
 }
 
-func LogOutToJournal(cred* Credentials) bool {
+func LogOutToJournal(cred *Credentials) bool {
 	ok := logToJournal(cred, false)
 	return ok
 }
@@ -37,7 +38,7 @@ func LogInToJournal(cred *Credentials) bool {
 	return ok
 }
 
-func logToJournal(cred * Credentials, login bool) bool {
+func logToJournal(cred *Credentials, login bool) bool {
 	log := returnCreditsToString(cred, login)
 	filePath := returnFilename()
 	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)

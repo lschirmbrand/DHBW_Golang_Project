@@ -3,6 +3,7 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/journal"
 	"bufio"
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,6 +28,7 @@ const (
 	Location           Operation = "1"
 	Person             Operation = "2"
 	PATHTOLOGS                   = "logs/log-"
+	PATHTOCSV                    = "logs/export"
 	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
 )
 
@@ -120,10 +122,9 @@ func validateOperationInput(operation string) (bool, error) {
 func readDataFromFile(filePath string) *[]string {
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
-	out := strings.Split(string(text), "\x0d")
+	out := strings.Split(string(text), "\n")
 	if len(out) > 0 {
 		out = out[:len(out)-1]
-		fmt.Println(len(out))
 	}
 	return &out
 }
@@ -133,22 +134,24 @@ func buildFilePath(date string) string {
 }
 
 func analyseLocationsForPerson(person string, data *[]journal.Credentials) {
-	s := make([]journal.Credentials, 0)
-
+	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Name, person) {
-			fmt.Println(entry.Name, entry.Location)
-			s = append(s, entry)
+			s = append(s, entry.Location)
 		}
 	}
-
-	for _, entry := range s {
-		fmt.Println(entry.Name, entry.Location)
-	}
+	logToCSVFile(s, person, "User")
 }
 
 func analysePersonsForLocation(location string, data *[]journal.Credentials) {
-
+	s := make([]string, 0)
+	for _, entry := range *data {
+		if strings.EqualFold(entry.Location, location) {
+			s = append(s, entry.Name)
+		}
+	}
+	fmt.Println(len(s))
+	logToCSVFile(s, location, "Location")
 }
 
 func trimStringBasedOnOS(text string, isSuffix bool) string {
@@ -190,14 +193,15 @@ func splitDataRowToCells(row string) journal.Credentials {
 	var cred journal.Credentials
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
-	if len(cells) > 0 {
-		cred.Name = trimStringBasedOnOS(strings.ToLower(cells[0]), false)
-		cred.Address = cells[1]
-		cred.Location = strings.ToLower(cells[2])
+	if len(cells) > 1 {
+		cred.Login = trimStringBasedOnOS(strings.ToLower(cells[0]), false) == "in"
+		cred.Name = cells[1]
+		cred.Address = cells[2]
+		cred.Location = strings.ToLower(cells[3])
 		var err error
-		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[3])
+		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[4])
 		check(err)
-		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[4])
+		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[5])
 		check(err)
 	}
 	return cred
@@ -234,4 +238,20 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 	}()
 
 	return results, done
+}
+
+func logToCSVFile(results []string, selector string, operation string) {
+	filePath := PATHTOCSV + operation+"-"+selector+".csv"
+	f, _ := os.Create(filePath)
+	defer f.Close()
+
+	csvLineData := make([]string, len(results) + 1)
+	csvLineData[0] = "Results for: " + selector
+	for i := 1; i< len(results)+ 1; i++ {
+		csvLineData[i] = results[i-1]
+	}
+
+	w := csv.NewWriter(f)
+	e := w.Write(csvLineData)
+	check(e)
 }

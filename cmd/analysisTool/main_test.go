@@ -50,22 +50,26 @@ func TestOperationValidator(t *testing.T) {
 
 func TestTrimStringBasedOnOS(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		res := trimStringBasedOnOS("teststring\r\n")
-		assert.EqualValues(t, res, "teststring")
+		res := trimStringBasedOnOS("teststring\r\n", true)
+		assert.EqualValues(t, res, "teststring" )
 	} else {
-		res := trimStringBasedOnOS("teststring\n")
+		res := trimStringBasedOnOS("teststring\n", true)
 		assert.EqualValues(t, res, "teststring")
 	}
+	res := trimStringBasedOnOS("\nteststring", false)
+	assert.EqualValues(t, res, "teststring" )
 }
 
 func TestContentToArray(t *testing.T) {
-	var content = strings.Split("name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\nname2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;\n", "\n")
+	var content = strings.Split("in,name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\nin,name2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;\n", "\n")
 	contentArray := *contentToArray(&content)
+	assert.EqualValues(t, contentArray[0].Login, true)
 	assert.EqualValues(t, contentArray[0].Name, "name1")
 	assert.EqualValues(t, contentArray[0].Address, "address1")
 	assert.EqualValues(t, contentArray[0].Location, "location1")
 	assert.EqualValues(t, contentArray[0].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
 	assert.EqualValues(t, contentArray[0].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[1].Login, true)
 	assert.EqualValues(t, contentArray[1].Name, "name2")
 	assert.EqualValues(t, contentArray[1].Address, "address2")
 	assert.EqualValues(t, contentArray[1].Location, "location2")
