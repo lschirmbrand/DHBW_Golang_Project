@@ -15,7 +15,7 @@ func TestLogToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-	LogToJournal(&cred)
+	LogInToJournal(&cred)
 	filePath := "../../logs/log-temp-test-file.txt"
 	data, e := os.ReadFile(filePath)
 	defer os.Remove(filePath)
@@ -44,6 +44,6 @@ func TestLogTestExample(t *testing.T) {
 		TimeGone: time.Now(),
 	}
 	for i := 0; i < 500; i++ {
-		LogToJournal(&cred)
+		LogInToJournal(&cred)
 	}
 }

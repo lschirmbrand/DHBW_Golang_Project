@@ -26,7 +26,7 @@ type result struct {
 const (
 	Location           Operation = "1"
 	Person             Operation = "2"
-	PATHTOLOGS                   = "../../logs/log-"
+	PATHTOLOGS                   = "logs/log-"
 	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
 )
 
@@ -36,10 +36,10 @@ func main() {
 	fmt.Println("-------------")
 
 	date := dateInputHandler(reader)
-	operation := operationInputHandler(reader)
 	filePath := buildFilePath(date)
 
 	if _, err := os.Stat(filePath); err == nil {
+		operation := operationInputHandler(reader)
 		content := *readDataFromFile(filePath)
 		data := *contentToArray(&content)
 
@@ -65,7 +65,7 @@ func dateInputHandler(reader *bufio.Reader) string {
 
 	for {
 		text, _ := reader.ReadString('\n')
-		text = trimStringBasedOnOS(text)
+		text = trimStringBasedOnOS(text, true)
 		ok, err := validateDateInput(text)
 		check(err)
 		if ok {
@@ -85,7 +85,7 @@ func operationInputHandler(reader *bufio.Reader) string {
 		ok, err := validateOperationInput(text)
 		check(err)
 		if ok {
-			return trimStringBasedOnOS(text)
+			return trimStringBasedOnOS(text, true)
 		}
 		fmt.Println("Input was wrong. Retry.")
 	}
@@ -96,7 +96,7 @@ func searchRequestHandler(reader *bufio.Reader, operation string) (string, bool)
 	fmt.Println("Please enter the keyword you are searching for:")
 	input, e := reader.ReadString('\n')
 	if check(e) {
-		return input, true
+		return trimStringBasedOnOS(input, true), true
 	}
 	return "", false
 }
@@ -110,7 +110,6 @@ func check(e error) bool {
 }
 
 func validateDateInput(date string) (bool, error) {
-	fmt.Println(date)
 	return regexp.Match("^(([19|20].(0[1-9]|[1-9][1-9])))[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])$", []byte(date))
 }
 
@@ -121,7 +120,11 @@ func validateOperationInput(operation string) (bool, error) {
 func readDataFromFile(filePath string) *[]string {
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
-	out := strings.Split(string(text), "\n")
+	out := strings.Split(string(text), "\x0d")
+	if len(out) > 0 {
+		out = out[:len(out)-1]
+		fmt.Println(len(out))
+	}
 	return &out
 }
 
@@ -131,16 +134,16 @@ func buildFilePath(date string) string {
 
 func analyseLocationsForPerson(person string, data *[]journal.Credentials) {
 	s := make([]journal.Credentials, 0)
+
 	for _, entry := range *data {
-		if strings.Compare(entry.Name,strings.ToLower(person)) == 0 {
-			fmt.Println(entry.Name)
+		if strings.EqualFold(entry.Name, person) {
+			fmt.Println(entry.Name, entry.Location)
 			s = append(s, entry)
 		}
 	}
-	fmt.Println(len(s))
 
 	for _, entry := range s {
-		fmt.Println(entry.Location)
+		fmt.Println(entry.Name, entry.Location)
 	}
 }
 
@@ -148,11 +151,19 @@ func analysePersonsForLocation(location string, data *[]journal.Credentials) {
 
 }
 
-func trimStringBasedOnOS(text string) string {
-	if runtime.GOOS == "windows" {
-		return strings.TrimSuffix(text, "\r\n")
+func trimStringBasedOnOS(text string, isSuffix bool) string {
+	isWindows := runtime.GOOS == "windows"
+	if isSuffix {
+		if isWindows {
+			text = strings.TrimSuffix(text, "\x0a\x0d")
+			return strings.TrimSuffix(text, "\r\n")
+		}
+		text = strings.TrimSuffix(text, "\x0d")
+		return strings.TrimSuffix(text, "\n")
+	} else {
+		text = strings.TrimPrefix(text, "\x0d")
+		return strings.TrimPrefix(text, "\n")
 	}
-	return strings.TrimSuffix(text, "\n")
 }
 
 func contentToArray(content *[]string) *[]journal.Credentials {
@@ -180,7 +191,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
 	if len(cells) > 0 {
-		cred.Name = strings.ToLower(cells[0])
+		cred.Name = trimStringBasedOnOS(strings.ToLower(cells[0]), false)
 		cred.Address = cells[1]
 		cred.Location = strings.ToLower(cells[2])
 		var err error
@@ -195,7 +206,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 func jobFactory(content []string) <-chan job {
 	jobs := make(chan job)
 	go func() {
-		for i := 0; i < len(content)-1; i++ {
+		for i := 0; i < len(content); i++ {
 			jobs <- job{content[i]}
 		}
 		close(jobs)

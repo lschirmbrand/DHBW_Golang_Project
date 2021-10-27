@@ -27,19 +27,29 @@ func check(e error) bool {
 	return true
 }
 
-func LogToJournal(cred *Credentials) bool {
-	log := returnCreditsToString(cred)
+func LogOutToJournal(cred* Credentials) bool {
+	ok := logToJournal(cred, false)
+	return ok
+}
+
+func LogInToJournal(cred *Credentials) bool {
+	ok := logToJournal(cred, true)
+	return ok
+}
+
+func logToJournal(cred * Credentials, login bool) bool {
+	log := returnCreditsToString(cred, login)
 	filePath := returnFilename()
 	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
 	if !check(e) {
 		return false
 	}
-	
+
 	defer f.Close()
 
-	_, e2 := f.WriteString(log)
-	if !check(e2) {
+	_, e = f.WriteString(log)
+	if !check(e) {
 		return false
 	}
 
@@ -51,8 +61,14 @@ func returnFilename() string {
 	return PATHTOLOGS + currentTime.Format(DATEFORMAT) + ".txt"
 }
 
-func returnCreditsToString(credits *Credentials) string {
+func returnCreditsToString(credits *Credentials, isLogin bool) string {
 	var sb strings.Builder
+	if isLogin {
+		sb.WriteString("in")
+	} else {
+		sb.WriteString("out")
+	}
+	sb.WriteString(",")
 	sb.WriteString(credits.Name)
 	sb.WriteString(",")
 	sb.WriteString(credits.Address)
