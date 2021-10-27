@@ -14,10 +14,15 @@ type CheckInPageData struct {
 	Location string
 }
 
-type CheckOutPageData struct {
+type CheckedInPageData struct {
 	Person
 	Location string
 	Time     string
+}
+
+type CheckedoutPageData struct {
+	Person
+	Location string
 }
 
 type Person struct {
@@ -39,7 +44,8 @@ const (
 )
 
 var checkInTemplate *template.Template
-var checkOutTemplate *template.Template
+var checkedInTemplate *template.Template
+var checkedOutTemplate *template.Template
 
 func checkinMux() http.Handler {
 	mux := http.NewServeMux()
@@ -47,7 +53,8 @@ func checkinMux() http.Handler {
 	parseTemplates("web/templates")
 
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
-	mux.HandleFunc("/checkout", checkOutHandler)
+	mux.HandleFunc("/checkedin", checkedInHandler)
+	mux.HandleFunc("/checkedout", checkedOutHandler)
 
 	fs := http.FileServer(http.Dir("web/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -57,7 +64,9 @@ func checkinMux() http.Handler {
 
 func parseTemplates(templateDir string) {
 	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
-	checkOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkOut.html")))
+	checkedInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedin.html")))
+	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
+
 }
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
@@ -70,27 +79,45 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	checkInTemplate.Execute(rw, data)
 }
 
-func checkOutHandler(rw http.ResponseWriter, r *http.Request) {
+func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
 	p := Person{
-		Name:   r.PostFormValue(string(nameCookieName)),
-		Street: r.PostFormValue(string(streetCookieName)),
-		PLZ:    r.PostFormValue(string(plzCookieName)),
-		City:   r.PostFormValue(string(cityCookieName)),
+		Name:   r.PostFormValue("name"),
+		Street: r.PostFormValue("street"),
+		PLZ:    r.PostFormValue("plz"),
+		City:   r.PostFormValue("city"),
 	}
 
-	data := CheckOutPageData{
+	location := r.PostFormValue("location")
+
+	data := CheckedInPageData{
 		Person:   p,
-		Location: r.PostForm.Get("location"),
+		Location: location,
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
 	savePersonToCookies(rw, &p)
 
-	checkOutTemplate.Execute(rw, data)
+	// journal.LogToJournal(journal.Credentials{
+	// 	Name:    p.Name,
+	// 	Address: location,
+	// }, false)
 
+	checkedInTemplate.Execute(rw, data)
+
+}
+
+func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	data := CheckedoutPageData{
+		Person:   Person{Name: r.PostFormValue("name")},
+		Location: r.PostFormValue("location"),
+	}
+
+	checkedOutTemplate.Execute(rw, data)
 }
 
 func savePersonToCookies(rw http.ResponseWriter, p *Person) {

@@ -1,15 +1,16 @@
 package journal
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLogToJournal(t *testing.T) {
-	var cred = credentials{
-		address: "address",
-		name:    "name",
+	var cred = Credentials{
+		Address: "address",
+		Name:    "name",
 	}
 	LogToJournal(cred, true)
 	filePath := "../logs/log-temp-test-file.txt"
@@ -17,5 +18,5 @@ func TestLogToJournal(t *testing.T) {
 	defer os.Remove(filePath)
 	check(e)
 
-	assert.EqualValues(t, string(data), cred.address + "," + cred.name + ";\n")
+	assert.EqualValues(t, string(data), cred.Address+","+cred.Name+";\n")
 }
