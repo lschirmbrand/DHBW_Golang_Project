@@ -25,47 +25,51 @@ var templateQR = template.Must(
 
 type StartVariableStruct struct {
 	RefreshTime int
-	Port string
+	Port        string
 }
 
-var startVariable StartVariableStruct
+var CheckinUrl string
 
+var StartVariable StartVariableStruct
 
 func main() {
+	flag.Parse()
+	go reloadQR()
+
+	if err := http.ListenAndServeTLS(":"+StartVariable.Port, "../../assets/ssl/server.crt", "../../assets/ssl/server.key", qrMux()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func init() {
 	var rT int
 	var p string
 	flag.IntVar(&rT, "refreshTime", 60, "Start variable for refresh time.")
 	flag.StringVar(&p, "port", "8142", "Start variable for URL-Link")
-	flag.Parse()
-
-	startVariable = StartVariableStruct{RefreshTime: rT, Port: p}
-
-	go reloadQR()
-
-	if err := http.ListenAndServeTLS(":"+startVariable.Port, "../../assets/ssl/server.crt", "../../assets/ssl/server.key", qrMux()); err != nil {
-		log.Fatal(err)
-	}
-	//openServer()
+	StartVariable = StartVariableStruct{RefreshTime: rT, Port: p}
 }
 
 func reloadQR() {
-	ticker := time.NewTicker(time.Duration(startVariable.RefreshTime * 1000000000))
+	createUrl()
+	ticker := time.NewTicker(time.Duration(StartVariable.RefreshTime * 1000000000))
 	for _ = range ticker.C {
-		checkinUrl := "localhost:" + startVariable.Port + "?token=" +  fmt.Sprint(token.CreateToken("DE"))
-		err := qrcode.WriteFile(checkinUrl, qrcode.Medium, 256, "pic/qr_code.jpg")
-
-		if err != nil {
-			log.Fatal(err)
-		}
+		createUrl()
 	}
 }
 
+func createUrl() {
+	CheckinUrl = "localhost:" + StartVariable.Port + "?token=" + fmt.Sprint(token.CreateToken("DE"))
+	err := qrcode.WriteFile(CheckinUrl, qrcode.Medium, 256, "pic/qr_code.jpg")
 
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-func handleQR(w http.ResponseWriter, r *http.Request){
+func handleQR(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("../../web/templates/qr-code.html"))
 
-	if err := tmpl.Execute(w, startVariable); err != nil{
+	if err := tmpl.Execute(w, StartVariable); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -75,14 +79,7 @@ func qrMux() http.Handler {
 	mux.Handle("/pic/", http.StripPrefix("/pic/", http.FileServer(http.Dir("./pic"))))
 
 	mux.HandleFunc("/", handleQR)
-	fmt.Printf("Starting server at port %v\n", startVariable.Port)
+	fmt.Printf("Starting server at port %v\n", StartVariable.Port)
 
 	return mux
 }
-
-
-
-
-
-
-
