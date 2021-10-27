@@ -1,9 +1,8 @@
 package token
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestValidateToken(t *testing.T) {
@@ -11,19 +10,22 @@ func TestValidateToken(t *testing.T) {
 	tok2 := CreateToken("DE")
 	tok3 := CreateToken("ENG")
 
-	valid1,_ := Validate(tok1)
-	valid2,_ := Validate(tok2)
-	valid3,_ := Validate(tok3)
+	valid1 := Validate(tok1, "test")
+	valid2 := Validate(tok2, "DE")
+	valid3 := Validate(tok3, "ENG")
 	assert.False(t, valid1)
 	assert.True(t, valid2)
 	assert.True(t, valid3)
 
 	//create Token to invalidate tok2
-	tok4 := CreateToken("IT")
-	valid2, _ = Validate(tok2)
-	valid3, _ = Validate(tok3)
-	valid4, _ := Validate(tok4)
+	tok4 := CreateToken("DE")
+	tok5 := CreateToken("DE")
+	valid2 = Validate(tok2, "DE")
+	valid3 = Validate(tok3, "ENG")
+	valid4 := Validate(tok4, "DE")
+	valid5 := Validate(tok5, "DE")
 	assert.False(t, valid2)
 	assert.True(t, valid3)
 	assert.True(t, valid4)
+	assert.True(t, valid5)
 }
