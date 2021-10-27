@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DHBW_Golang_Project/journal"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"html/template"
@@ -100,10 +101,10 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	savePersonToCookies(rw, &p)
 
-	// journal.LogToJournal(journal.Credentials{
-	// 	Name:    p.Name,
-	// 	Address: location,
-	// }, false)
+	journal.LogToJournal(journal.Credentials{
+		Name:    p.Name,
+		Address: location,
+	}, false)
 
 	checkedInTemplate.Execute(rw, data)
 

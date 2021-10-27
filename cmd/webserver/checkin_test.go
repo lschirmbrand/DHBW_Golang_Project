@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -122,7 +121,7 @@ func TestReadPersonFromCookies(t *testing.T) {
 }
 
 func TestCheckinHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
+	parseTemplates("../../web/templates")
 
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
@@ -137,53 +136,14 @@ func TestCheckinHandler(t *testing.T) {
 }
 
 func TestCheckedInHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
+	parseTemplates("../../web/templates")
 
-	reader := strings.NewReader("name=Max+Mustermann&street=Musterstr.+12&plz=12345&city=Musterstadt&location=TestLocation")
-	req, err := http.NewRequest("POST", "http://localhost", reader)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
 
 	recorder := httptest.NewRecorder()
 
 	checkedInHandler(recorder, req)
 	resp := recorder.Result()
-
-	// http status should be ok
 	assert.Equal(t, 200, resp.StatusCode)
-
-	// body should contain name and location
-	body, err := ioutil.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\n", string(body))
-
-	// cookies should be set
-	cookies := resp.Cookies()
-
-	assert.Equal(t, "Max Mustermann", cookies[0].Value)
-	assert.Equal(t, "Musterstr. 12", cookies[1].Value)
-	assert.Equal(t, "12345", cookies[2].Value)
-	assert.Equal(t, "Musterstadt", cookies[3].Value)
-}
-
-func TestCheckedOutHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
-
-	reader := strings.NewReader("name=Max+Mustermann&location=TestLocation")
-	req, err := http.NewRequest("POST", "http://localhost", reader)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	assert.NoError(t, err)
-
-	recorder := httptest.NewRecorder()
-
-	checkedOutHandler(recorder, req)
-	resp := recorder.Result()
-
-	// http status should be ok
-	assert.Equal(t, 200, resp.StatusCode)
-
-	// body should contain name and location
-	body, err := ioutil.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\n", string(body))
 }
