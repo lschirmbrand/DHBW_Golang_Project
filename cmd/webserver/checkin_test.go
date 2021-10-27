@@ -135,7 +135,7 @@ func TestCheckinHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 }
 
-func TestCheckOutHandler(t *testing.T) {
+func TestCheckedInHandler(t *testing.T) {
 	parseTemplates("../../web/templates")
 
 	req, err := http.NewRequest("GET", "http://localhost", nil)
@@ -143,7 +143,7 @@ func TestCheckOutHandler(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 
-	checkOutHandler(recorder, req)
+	checkedInHandler(recorder, req)
 	resp := recorder.Result()
 	assert.Equal(t, 200, resp.StatusCode)
 }
