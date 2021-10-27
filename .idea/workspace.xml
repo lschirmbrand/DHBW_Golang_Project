@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="38fddf63-b5a9-4fd9-ac26-9e42ca011510" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/cmd/qr-web/coverage" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/qr-web/main_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/coverage" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/qr-web/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/qr-web/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/qr-web/pic/qr_code.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/qr-web/main_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/qr-web/main_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +46,7 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
   </component>
-  <component name="RunManager" selected="Go Test.TestQrReload in DHBW_Golang_Project/cmd/qr-web">
+  <component name="RunManager" selected="Go Test.TestMux in DHBW_Golang_Project/cmd/qr-web">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="DHBW_Golang_Project" />
       <working_directory value="$PROJECT_DIR$" />
@@ -58,15 +54,6 @@
       <package value="DHBW_Golang_Project" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build DHBW_Golang_Project/cmd/qr-web" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="DHBW_Golang_Project" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="DHBW_Golang_Project/cmd/qr-web" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/cmd/qr-web/main.go" />
       <method v="2" />
     </configuration>
     <configuration name="TestDateValidator in DHBW_Golang_Project/cmd/analysisTool" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -79,6 +66,18 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestDateValidator\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestMux in DHBW_Golang_Project/cmd/qr-web" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="DHBW_Golang_Project" />
+      <working_directory value="$PROJECT_DIR$/cmd/qr-web" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="DHBW_Golang_Project/cmd/qr-web" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestMux\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestQrHandler in DHBW_Golang_Project/cmd/qr-web" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -129,11 +128,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestMux in DHBW_Golang_Project/cmd/qr-web" />
         <item itemvalue="Go Test.TestQrReload in DHBW_Golang_Project/cmd/qr-web" />
         <item itemvalue="Go Test.TestQrHandler in DHBW_Golang_Project/cmd/qr-web" />
         <item itemvalue="Go Test.TestVerifyToken in DHBW_Golang_Project/pkg/token" />
         <item itemvalue="Go Test.TestDateValidator in DHBW_Golang_Project/cmd/analysisTool" />
-        <item itemvalue="Go Build.go build DHBW_Golang_Project/cmd/qr-web" />
       </list>
     </recent_temporary>
   </component>
