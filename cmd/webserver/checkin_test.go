@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"fmt"
@@ -18,14 +19,13 @@ func createServerValidationWrapper(validator token.Validator) *httptest.Server {
 		tokenValidationWrapper(
 			validator,
 			func(w http.ResponseWriter, r *http.Request) {
-				location := r.Context().Value(locationContextKey).(string)
-				fmt.Fprintln(w, location)
+				fmt.Fprintln(w, "Test")
 			}))
 }
 
 func TestTokenValidationWrapperValid(t *testing.T) {
 
-	ts := createServerValidationWrapper(func(t token.Token) (bool, string) { return true, "lol" })
+	ts := createServerValidationWrapper(func(t token.Token, l location.Location) bool { return true })
 
 	defer ts.Close()
 
@@ -35,13 +35,13 @@ func TestTokenValidationWrapperValid(t *testing.T) {
 	body, err := ioutil.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "lol\n", string(body))
+	assert.Equal(t, "Test\n", string(body))
 
 }
 
 func TestTokenValidationWrapperNotValid(t *testing.T) {
 
-	ts := createServerValidationWrapper(func(t token.Token) (bool, string) { return false, "lol" })
+	ts := createServerValidationWrapper(func(t token.Token, l location.Location) bool { return false })
 
 	defer ts.Close()
 
@@ -122,7 +122,7 @@ func TestReadPersonFromCookies(t *testing.T) {
 }
 
 func TestCheckinHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
+	parseCheckinTemplates("test_assets/templates")
 
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
@@ -137,7 +137,7 @@ func TestCheckinHandler(t *testing.T) {
 }
 
 func TestCheckedInHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
+	parseCheckinTemplates("test_assets/templates")
 
 	reader := strings.NewReader("name=Max+Mustermann&street=Musterstr.+12&plz=12345&city=Musterstadt&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
@@ -167,7 +167,7 @@ func TestCheckedInHandler(t *testing.T) {
 }
 
 func TestCheckedOutHandler(t *testing.T) {
-	parseTemplates("test_assets/templates")
+	parseCheckinTemplates("test_assets/templates")
 
 	reader := strings.NewReader("name=Max+Mustermann&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
