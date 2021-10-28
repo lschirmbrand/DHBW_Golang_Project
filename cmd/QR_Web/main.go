@@ -40,7 +40,7 @@ func main() {
 func reloadQR() {
 	c := true
 	ticker := time.NewTicker(5 * time.Second)
-	for _ = range ticker.C {
+	for range ticker.C {
 
 		if c {
 			fmt.Println("google")

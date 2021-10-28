@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -51,17 +52,18 @@ func TestOperationValidator(t *testing.T) {
 func TestTrimStringBasedOnOS(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		res := trimStringBasedOnOS("teststring\r\n", true)
-		assert.EqualValues(t, res, "teststring" )
+		assert.EqualValues(t, res, "teststring")
 	} else {
 		res := trimStringBasedOnOS("teststring\n", true)
 		assert.EqualValues(t, res, "teststring")
 	}
 	res := trimStringBasedOnOS("\nteststring", false)
-	assert.EqualValues(t, res, "teststring" )
+	assert.EqualValues(t, res, "teststring")
 }
 
 func TestContentToArray(t *testing.T) {
-	var content = strings.Split("in,name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\nin,name2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;\n", "\n")
+	var content = strings.Split("LOGIN,name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\n"+
+		"LOGIN,name2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;", "\n")
 	contentArray := *contentToArray(&content)
 	assert.EqualValues(t, contentArray[0].Login, true)
 	assert.EqualValues(t, contentArray[0].Name, "name1")
@@ -82,9 +84,20 @@ func TestReadDataFromFile(t *testing.T) {
 	expected := strings.Split(in, "\n")
 	filePath := filepath.Join("../../logs/temporaryForTest.txt")
 	f, _ := os.Create(filePath)
-	f.WriteString(in)
-	defer os.Remove(filePath)
-	defer f.Close()
+	_, e := f.WriteString(in)
+	check(e)
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(filePath)
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(f)
 
 	out := *readDataFromFile(filePath)
 	for i := 0; i < len(out)-1; i++ {
@@ -93,7 +106,7 @@ func TestReadDataFromFile(t *testing.T) {
 }
 
 func BenchmarkPerformanceOfData(b *testing.B) {
-	fileContent := "name,address,location,20-10-2021 09:44:25,20-10-2021 09:44:25;\nname,address,location,20-10-2021 09:44:41,20-10-2021 09:44:41;\nname,address,location,20-10-2021 10:07:13,20-10-2021 10:07:13;\nname,address,location,20-10-2021 10:07:18,20-10-2021 10:07:18;\nname,address,location,20-10-2021 10:07:28,20-10-2021 10:07:28;\nname,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;\nname,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;"
+	fileContent := "LOGIN,name,address,location,20-10-2021 09:44:25,20-10-2021 09:44:25;\nLOGIN,name,address,location,20-10-2021 09:44:41,20-10-2021 09:44:41;\nLOGIN,name,address,location,20-10-2021 10:07:13,20-10-2021 10:07:13;\nLOGIN,name,address,location,20-10-2021 10:07:18,20-10-2021 10:07:18;\nLOGIN,name,address,location,20-10-2021 10:07:28,20-10-2021 10:07:28;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;"
 	for n := 0; n < b.N; n++ {
 		content := strings.Split(fileContent, "\n")
 		contentToArray(&content)

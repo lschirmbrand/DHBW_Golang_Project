@@ -39,7 +39,7 @@ func LogInToJournal(cred *Credentials) bool {
 }
 
 func logToJournal(cred *Credentials, login bool) bool {
-	log := returnCreditsToString(cred, login)
+	logmsg := returnCreditsToString(cred, login)
 	filePath := returnFilename()
 	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
@@ -47,9 +47,14 @@ func logToJournal(cred *Credentials, login bool) bool {
 		return false
 	}
 
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(f)
 
-	_, e = f.WriteString(log)
+	_, e = f.WriteString(logmsg)
 	if !check(e) {
 		return false
 	}
@@ -65,9 +70,9 @@ func returnFilename() string {
 func returnCreditsToString(credits *Credentials, isLogin bool) string {
 	var sb strings.Builder
 	if isLogin {
-		sb.WriteString("in")
+		sb.WriteString("LOGIN")
 	} else {
-		sb.WriteString("out")
+		sb.WriteString("LOGOUT")
 	}
 	sb.WriteString(",")
 	sb.WriteString(credits.Name)
