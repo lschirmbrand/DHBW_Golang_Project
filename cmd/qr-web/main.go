@@ -65,8 +65,10 @@ func init() {
 	var p string
 	flag.IntVar(&rT, "refreshTime", 2, "Start variable for refresh time.")
 	flag.StringVar(&p, "port", "8142", "Start variable for URL-Link")
+
 	StartVariable = StartVariableStruct{RefreshTime: rT, Port: p}
 	htmlVariable = htmlVariableStruct{RefreshTime: rT}
+
 }
 
 func reloadQR() {
@@ -80,8 +82,7 @@ func reloadQR() {
 func createUrl() {
 	locations,_ := location.ReadLocations(pathToLocation + "locations.xml")
 	for _, loc := range locations{
-		CheckinUrl = "localhost:" + StartVariable.Port + "?token=" + string(token.CreateToken(loc))
-
+		CheckinUrl = "localhost:" + StartVariable.Port + "/checkin?token=" + string(token.CreateToken(loc)) + "&location=" + string(loc)
 		err := qrcode.WriteFile(CheckinUrl, qrcode.Medium, 256, pathToQr + string(loc)+".jpg")
 
 		checkError(err)
@@ -106,13 +107,12 @@ func pathToLocations(locationsDir string){
 }
 
 func handleQR(w http.ResponseWriter, r *http.Request) {
-	actualLocation = location.Location(r.URL.Query()["location"][0])
+	actualLocation = location.Location(r.URL.Query().Get("location"))
 
 	if valideLocation(actualLocation) {
 		htmlVariable.Location = string(actualLocation)
 
-		err := qrTemplate.Execute(w, htmlVariable)
-		checkError(err)
+		checkError(qrTemplate.Execute(w, htmlVariable))
 	}
 }
 

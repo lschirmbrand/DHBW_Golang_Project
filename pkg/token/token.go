@@ -20,7 +20,7 @@ func Validate(expToken Token, tokenLocation location.Location) bool {
 }
 
 func CreateToken(tokenLocation location.Location) Token {
-	b := make([]byte, 8)
+	b := make([]byte, 10)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}

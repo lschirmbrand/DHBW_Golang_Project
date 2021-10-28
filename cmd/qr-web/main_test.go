@@ -42,9 +42,11 @@ func TestMux(t *testing.T){
 func TestQrReload(t *testing.T){
 	pathToPic("../../assets/qr-codes/")
 	pathToLocations("../../assets/")
+	setLocation("Italy")
+
 	prevUrl := ""
 	StartVariable = StartVariableStruct{2,"4122"}
-	setLocation("Italy")
+
 	go reloadQR()
 
 	time.Sleep(1 * time.Second)
