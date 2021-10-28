@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-type credentials struct {
-	name    string
-	address string
+type Credentials struct {
+	Name    string
+	Address string
 }
 
 func check(e error) bool {
@@ -18,8 +18,8 @@ func check(e error) bool {
 	return true
 }
 
-func LogToJournal(cred credentials, isTest bool) bool {
-	log := cred.address + "," + cred.name + ";\n"
+func LogToJournal(cred Credentials, isTest bool) bool {
+	log := cred.Address + "," + cred.Name + ";\n"
 	var filePath string
 	if !isTest {
 		filePath = returnFilename()
@@ -44,5 +44,5 @@ func LogToJournal(cred credentials, isTest bool) bool {
 
 func returnFilename() string {
 	currentTime := time.Now()
-	return "../logs/log-" + currentTime.Format("02-01-2006") + ".txt"
+	return "logs/log-" + currentTime.Format("02-01-2006") + ".txt"
 }
