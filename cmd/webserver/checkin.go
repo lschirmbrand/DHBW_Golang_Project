@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DHBW_Golang_Project/journal"
+	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"html/template"
@@ -12,18 +12,18 @@ import (
 
 type CheckInPageData struct {
 	Person
-	Location string
+	Location location.Location
 }
 
 type CheckedInPageData struct {
 	Person
-	Location string
+	Location location.Location
 	Time     string
 }
 
 type CheckedoutPageData struct {
 	Person
-	Location string
+	Location location.Location
 }
 
 type Person struct {
@@ -51,7 +51,7 @@ var checkedOutTemplate *template.Template
 func checkinMux() http.Handler {
 	mux := http.NewServeMux()
 
-	parseTemplates("web/templates")
+	parseCheckinTemplates("web/templates")
 
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkedin", checkedInHandler)
@@ -63,7 +63,7 @@ func checkinMux() http.Handler {
 	return mux
 }
 
-func parseTemplates(templateDir string) {
+func parseCheckinTemplates(templateDir string) {
 	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
 	checkedInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedin.html")))
 	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
@@ -72,10 +72,11 @@ func parseTemplates(templateDir string) {
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	location := r.Context().Value(locationContextKey).(string)
+	l := r.Context().Value(locationContextKey).(string)
 
 	p := readPersonFromCookies(r)
-	data := CheckInPageData{Person: *p, Location: location}
+
+	data := CheckInPageData{Person: *p, Location: location.Location(l)}
 
 	checkInTemplate.Execute(rw, data)
 }
@@ -91,20 +92,20 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 		City:   r.PostFormValue("city"),
 	}
 
-	location := r.PostFormValue("location")
+	loc := r.PostFormValue("location")
 
 	data := CheckedInPageData{
 		Person:   p,
-		Location: location,
+		Location: location.Location(loc),
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
 	savePersonToCookies(rw, &p)
 
-	journal.LogToJournal(journal.Credentials{
-		Name:    p.Name,
-		Address: location,
-	}, false)
+	// journal.LogToJournal(journal.Credentials{
+	// 	Name:    p.Name,
+	// 	Address: location,
+	// }, false)
 
 	checkedInTemplate.Execute(rw, data)
 
@@ -115,7 +116,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 	data := CheckedoutPageData{
 		Person:   Person{Name: r.PostFormValue("name")},
-		Location: r.PostFormValue("location"),
+		Location: location.Location(r.PostFormValue("location")),
 	}
 
 	checkedOutTemplate.Execute(rw, data)
@@ -180,8 +181,9 @@ func readPersonFromCookies(r *http.Request) *Person {
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := token.Token(r.URL.Query().Get("token"))
-		if valid, location := validator(t); valid {
-			ctx := context.WithValue(r.Context(), locationContextKey, location)
+		l := location.Location(r.URL.Query().Get("location"))
+		if valid := validator(t, l); valid {
+			ctx := context.WithValue(r.Context(), locationContextKey, l)
 
 			handler(w, r.WithContext(ctx))
 		} else {

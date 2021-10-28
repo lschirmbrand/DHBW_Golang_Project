@@ -6,8 +6,10 @@ import (
 )
 
 const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 type Token string
-type Validator func(t Token) (bool, string)
+type Validator func(t Token, l location.Location) bool
+
 var tokenMap = map[location.Location][]Token{}
 
 func Validate(expToken Token, tokenLocation location.Location) bool {
@@ -26,7 +28,7 @@ func CreateToken(tokenLocation location.Location) Token {
 	}
 
 	if len(tokenMap[tokenLocation]) == 2 {
-		tokenMap[tokenLocation] = []Token {tokenMap[tokenLocation][1]}
+		tokenMap[tokenLocation] = []Token{tokenMap[tokenLocation][1]}
 	}
 
 	newToken := Token(b)
