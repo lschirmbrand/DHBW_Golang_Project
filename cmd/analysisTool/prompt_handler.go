@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 )
 
-func startAnalyticalToolDialog() {
+func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *string) {
 	reader := bufio.NewReader(os.Stdin)
 	promptFormatter(1)
 	fmt.Println("-         Analyse-Tool         -")
@@ -16,7 +17,7 @@ func startAnalyticalToolDialog() {
 	var filePath string
 
 	for {
-		date := dateInputHandler(reader)
+		date := dateInputHandler(reader, nil)
 		filePath = buildFilePath(date)
 		if _, err := os.Stat(filePath); err == nil {
 			break
@@ -33,21 +34,24 @@ func startAnalyticalToolDialog() {
 	if operation == string(VISITORID) {
 		request, ok := searchRequestHandler(reader, string(LOCATION))
 		if ok {
-			analysePersonsForLocation(request, &data, reader)
+			analyseVisitorsByLocation(request, &data, reader)
 		}
 	} else if operation == string(LOCATIONID) {
 		request, ok := searchRequestHandler(reader, string(VISITOR))
 		if ok {
-			analyseLocationsForPerson(request, &data, reader)
+			analyseLocationsByVisitor(request, &data, reader)
 		}
 	}
 }
 
-func dateInputHandler(reader *bufio.Reader) string {
+func dateInputHandler(reader *bufio.Reader, accessed chan<- bool) string {
 	promptFormatter(1)
 	fmt.Println("Enter date in format YYYY-MM-DD: ")
 
 	for {
+		if accessed != nil {
+			accessed<-true
+		}
 		text, _ := reader.ReadString('\n')
 		text = trimStringBasedOnOS(text, true)
 		ok, err := validateDateInput(text)
@@ -110,5 +114,20 @@ func queryLengthHandler(slice []string) int {
 func promptFormatter(newlines int){
 	for i := 0; i < newlines; i++ {
 		fmt.Println()
+	}
+}
+
+func trimStringBasedOnOS(text string, isSuffix bool) string {
+	isWindows := runtime.GOOS == "windows"
+	if isSuffix {
+		if isWindows {
+			text = strings.TrimSuffix(text, "\x0a\x0d")
+			return strings.TrimSuffix(text, "\r\n")
+		}
+		text = strings.TrimSuffix(text, "\x0d")
+		return strings.TrimSuffix(text, "\n")
+	} else {
+		text = strings.TrimPrefix(text, "\x0d")
+		return strings.TrimPrefix(text, "\n")
 	}
 }

@@ -19,7 +19,7 @@ func readDataFromFile(filePath string) *[]string {
 	return &out
 }
 
-func logToCSVFile(results []string, selector string, operation string) {
+func exportToCSVFile(results []string, selector string, operation string) {
 	filePath := PATHTOCSV + operation+"_"+selector+".csv"
 	f, _ := os.Create(filePath)
 	defer func(f *os.File) {
@@ -42,4 +42,8 @@ func logToCSVFile(results []string, selector string, operation string) {
 
 	promptFormatter(1)
 	fmt.Println("The query-result was exported to: " + filePath)
+}
+
+func buildFilePath(date string) string {
+	return PATHTOLOGS + date + ".txt"
 }

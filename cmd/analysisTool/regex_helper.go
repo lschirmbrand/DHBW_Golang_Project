@@ -11,5 +11,5 @@ func validateOperationInput(operation string) (bool, error) {
 }
 
 func validateYesNoInput(operation string) (bool, error){
-	return regexp.Match("\\b[y|n]\\b", []byte(operation))
+	return regexp.Match("(?i)\\b[y|n]\\b|yes\\b|no\\b", []byte(operation))
 }

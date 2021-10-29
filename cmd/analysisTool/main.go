@@ -3,6 +3,7 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/journal"
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"runtime"
@@ -31,7 +32,12 @@ const (
 )
 
 func main() {
-	startAnalyticalToolDialog()
+
+	datePtr := flag.String("date", "", "a date")
+	operationPtr := flag.String("operation", "", "a date")
+	queryPtr := flag.String("query", "", "a date")
+
+	startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
 }
 
 func check(e error) bool {
@@ -42,11 +48,7 @@ func check(e error) bool {
 	return true
 }
 
-func buildFilePath(date string) string {
-	return PATHTOLOGS + date + ".txt"
-}
-
-func analyseLocationsForPerson(visitor string, data *[]journal.Credentials, reader *bufio.Reader) {
+func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials, reader *bufio.Reader) {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Name, visitor) {
@@ -56,7 +58,7 @@ func analyseLocationsForPerson(visitor string, data *[]journal.Credentials, read
 	assertQueryExport(s, reader, VISITOR, visitor)
 }
 
-func analysePersonsForLocation(location string, data *[]journal.Credentials, reader *bufio.Reader) {
+func analyseVisitorsByLocation(location string, data *[]journal.Credentials, reader *bufio.Reader) {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Location, location) {
@@ -70,7 +72,7 @@ func assertQueryExport(s []string, reader *bufio.Reader, operation Operation, se
 	qLen := queryLengthHandler(s)
 	if qLen > 0 {
 		if exportHandler(reader, qLen) {
-			logToCSVFile(s, selector, string(operation))
+			exportToCSVFile(s, selector, string(operation))
 		} else {
 			promptFormatter(1)
 			fmt.Println("Results of query wont get exported. \nAborting.")
@@ -149,19 +151,4 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 	}()
 
 	return results, done
-}
-
-func trimStringBasedOnOS(text string, isSuffix bool) string {
-	isWindows := runtime.GOOS == "windows"
-	if isSuffix {
-		if isWindows {
-			text = strings.TrimSuffix(text, "\x0a\x0d")
-			return strings.TrimSuffix(text, "\r\n")
-		}
-		text = strings.TrimSuffix(text, "\x0d")
-		return strings.TrimSuffix(text, "\n")
-	} else {
-		text = strings.TrimPrefix(text, "\x0d")
-		return strings.TrimPrefix(text, "\n")
-	}
 }
