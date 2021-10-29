@@ -42,6 +42,9 @@ const (
 	streetKey   key = "street"
 	plzKey      key = "plz"
 	cityKey     key = "city"
+
+	// lifetime of cookies: 1 year
+	cookieLifetime time.Duration = time.Hour * 24 * 356
 )
 
 var (
@@ -125,20 +128,24 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 func savePersonToCookies(rw http.ResponseWriter, p *Person) {
 	nameCookie := http.Cookie{
-		Name:  string(nameKey),
-		Value: p.Name,
+		Name:    string(nameKey),
+		Value:   p.Name,
+		Expires: time.Now().Add(cookieLifetime),
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetKey),
-		Value: p.Street,
+		Name:    string(streetKey),
+		Value:   p.Street,
+		Expires: time.Now().Add(cookieLifetime),
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzKey),
-		Value: p.PLZ,
+		Name:    string(plzKey),
+		Value:   p.PLZ,
+		Expires: time.Now().Add(cookieLifetime),
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityKey),
-		Value: p.City,
+		Name:    string(cityKey),
+		Value:   p.City,
+		Expires: time.Now().Add(cookieLifetime),
 	}
 
 	http.SetCookie(rw, &nameCookie)
