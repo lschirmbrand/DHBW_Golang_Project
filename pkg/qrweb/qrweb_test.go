@@ -12,11 +12,11 @@ import (
 )
 
 func TestQrHandler(t *testing.T) {
+	config.Configure()
 	parseTemplates("../../web/templates")
+	location.ReadLocations("../../assets/locations.xml")
 
-	locations, _ := location.ReadLocations("../../assets/locations.xml")
-
-	for _, actLocation := range locations {
+	for _, actLocation := range location.Locations {
 		req, err := http.NewRequest("GET", "http://localhost:8142/qr?location="+string(actLocation), nil)
 		assert.NoError(t, err)
 
@@ -28,24 +28,29 @@ func TestQrHandler(t *testing.T) {
 	}
 }
 
-// func TestMux(t *testing.T) {
-// 	mux := Mux()
-// 	parseTemplates("../../web/templates")
-// 	server := httptest.NewServer(mux)
+func TestMux(t *testing.T) {
+	config.Configure()
+	// overwrite template dir path
+	templatePath := "../../web/templates"
+	config.TemplatePath = &templatePath
 
-// 	rec, err := http.NewRequest("GET", server.URL, nil)
-// 	assert.NoError(t, err)
+	mux := Mux()
+	server := httptest.NewServer(mux)
 
-// 	_, err = http.DefaultClient.Do(rec)
-// 	assert.NoError(t, err)
+	rec, err := http.NewRequest("GET", server.URL, nil)
+	assert.NoError(t, err)
 
-// }
+	_, err = http.DefaultClient.Do(rec)
+	assert.NoError(t, err)
+
+}
 
 func TestQrReload(t *testing.T) {
-	config.Configure()
-	pathToLocations("../../assets/")
+	// overwrite path to location file
+	locationFilePath := "../../assets/locations.xml"
+	config.LocationFilePath = &locationFilePath
 
-	//overwrite refreshTime
+	// overwrite refreshTime
 	refreshTime := 2
 	config.RefreshTime = &refreshTime
 
@@ -65,14 +70,4 @@ func TestQrReload(t *testing.T) {
 	for loc, url := range checkinUrls {
 		assert.NotEqual(t, previous[loc], url)
 	}
-}
-
-func TestValideLocation(t *testing.T) {
-	pathToLocations("../../assets/")
-
-	valide1 := valideLocation("test")
-	valide2 := valideLocation("Germany")
-
-	assert.False(t, valide1)
-	assert.True(t, valide2)
 }

@@ -73,7 +73,7 @@ func parseTemplates(templateDir string) {
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	l := r.Context().Value(locationKey).(string)
+	l := r.Context().Value(locationKey).(location.Location)
 
 	p := readPersonFromCookies(r)
 
