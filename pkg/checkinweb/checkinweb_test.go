@@ -1,4 +1,4 @@
-package main
+package checkinweb
 
 import (
 	"DHBW_Golang_Project/pkg/location"
@@ -95,19 +95,19 @@ func TestReadPersonFromCookies(t *testing.T) {
 	}
 
 	nameCookie := http.Cookie{
-		Name:  string(nameCookieName),
+		Name:  string(nameKey),
 		Value: p.Name,
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetCookieName),
+		Name:  string(streetKey),
 		Value: p.Street,
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzCookieName),
+		Name:  string(plzKey),
 		Value: p.PLZ,
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityCookieName),
+		Name:  string(cityKey),
 		Value: p.City,
 	}
 
@@ -122,12 +122,13 @@ func TestReadPersonFromCookies(t *testing.T) {
 }
 
 func TestCheckinHandler(t *testing.T) {
-	parseCheckinTemplates("test_assets/templates")
+
+	parseTemplates("test_assets/templates")
 
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), locationContextKey, "TestLocation")
+	ctx := context.WithValue(req.Context(), locationKey, "TestLocation")
 
 	recorder := httptest.NewRecorder()
 
@@ -137,7 +138,7 @@ func TestCheckinHandler(t *testing.T) {
 }
 
 func TestCheckedInHandler(t *testing.T) {
-	parseCheckinTemplates("test_assets/templates")
+	parseTemplates("test_assets/templates")
 
 	reader := strings.NewReader("name=Max+Mustermann&street=Musterstr.+12&plz=12345&city=Musterstadt&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
@@ -167,7 +168,7 @@ func TestCheckedInHandler(t *testing.T) {
 }
 
 func TestCheckedOutHandler(t *testing.T) {
-	parseCheckinTemplates("test_assets/templates")
+	parseTemplates("test_assets/templates")
 
 	reader := strings.NewReader("name=Max+Mustermann&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
