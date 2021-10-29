@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func checkFlagFunctionality(datePtr *string, operationPtr *string, selectedOperation *Operation ,queryPtr *string) (bool, *[]string) {
+func checkFlagFunctionality(datePtr *string, operationPtr *string, selectedOperation *Operation, queryPtr *string) (bool, *[]string) {
 	flagsOk := true
 	fails := make([]string, 0)
 	ok, _ := validateDateInput(*datePtr)
@@ -41,7 +41,7 @@ func validateOperationInput(operation string) (bool, error) {
 	return regexp.Match("(?i)\\bvisitor\\b|location\\b", []byte(operation))
 }
 
-func validateYesNoInput(operation string) (bool, error){
+func validateYesNoInput(operation string) (bool, error) {
 	return regexp.Match("(?i)\\b[y|n]\\b|yes\\b|no\\b", []byte(operation))
 }
 
