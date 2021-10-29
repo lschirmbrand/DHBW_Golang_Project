@@ -8,18 +8,24 @@ var (
 
 	RefreshTime *int
 
-	TemplatePath *string
-	QrCodePath   *string
+	TemplatePath     *string
+	QrCodePath       *string
+	LocationFilePath *string
+
+	parsed bool
 )
 
 func Configure() {
-	CheckinPort = flag.Int("checkinPort", 8443, "port of checkin server")
-	QRCodePort = flag.Int("qrCodePort", 8444, "port of qr-code server")
+	if !parsed {
+		CheckinPort = flag.Int("checkinPort", 8443, "port of checkin server")
+		QRCodePort = flag.Int("qrCodePort", 8444, "port of qr-code server")
 
-	RefreshTime = flag.Int("refreshTime", 60, "refresh time for qr-codes in seconds")
+		RefreshTime = flag.Int("refreshTime", 60, "refresh time for qr-codes in seconds")
 
-	TemplatePath = flag.String("templatePath", "web/templates", "path to html-template directory")
-	QrCodePath = flag.String("qrCodePath", "assets/qr-codes", "path to save qr-codes")
-
+		TemplatePath = flag.String("templatePath", "web/templates", "path to html-template directory")
+		QrCodePath = flag.String("qrCodePath", "assets/qr-codes", "path to save qr-codes")
+		LocationFilePath = flag.String("locationFilePath", "assets/locations.xml", "path to xml file with locations")
+	}
 	flag.Parse()
+	parsed = true
 }

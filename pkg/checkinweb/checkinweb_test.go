@@ -128,7 +128,7 @@ func TestCheckinHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), locationKey, "TestLocation")
+	ctx := context.WithValue(req.Context(), locationKey, location.Location("TestLocation"))
 
 	recorder := httptest.NewRecorder()
 

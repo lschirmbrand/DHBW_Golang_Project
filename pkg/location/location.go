@@ -11,13 +11,17 @@ type xmlLocations struct {
 	Locations []Location `xml:"location"`
 }
 
+var (
+	Locations []Location
+)
+
 type Location string
 
-func ReadLocations(filepath string) ([]Location, error) {
+func ReadLocations(filepath string) error {
 	file, err := os.Open(filepath)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer file.Close()
@@ -25,12 +29,22 @@ func ReadLocations(filepath string) ([]Location, error) {
 	byteValue, err := ioutil.ReadAll(file)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var locations xmlLocations
+	var xmlLocs xmlLocations
 
-	xml.Unmarshal(byteValue, &locations)
+	xml.Unmarshal(byteValue, &xmlLocs)
 
-	return locations.Locations, nil
+	Locations = xmlLocs.Locations
+	return nil
+}
+
+func Validate(expLocations Location) bool {
+	for _, actLocation := range Locations {
+		if actLocation == expLocations {
+			return true
+		}
+	}
+	return false
 }
