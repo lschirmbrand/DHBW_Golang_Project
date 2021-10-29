@@ -1,6 +1,7 @@
-package main
+package checkinweb
 
 import (
+	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"fmt"
@@ -18,14 +19,13 @@ func createServerValidationWrapper(validator token.Validator) *httptest.Server {
 		tokenValidationWrapper(
 			validator,
 			func(w http.ResponseWriter, r *http.Request) {
-				location := r.Context().Value(locationContextKey).(string)
-				fmt.Fprintln(w, location)
+				fmt.Fprintln(w, "Test")
 			}))
 }
 
 func TestTokenValidationWrapperValid(t *testing.T) {
 
-	ts := createServerValidationWrapper(func(t token.Token) (bool, string) { return true, "lol" })
+	ts := createServerValidationWrapper(func(t token.Token, l location.Location) bool { return true })
 
 	defer ts.Close()
 
@@ -35,13 +35,13 @@ func TestTokenValidationWrapperValid(t *testing.T) {
 	body, err := ioutil.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "lol\n", string(body))
+	assert.Equal(t, "Test\n", string(body))
 
 }
 
 func TestTokenValidationWrapperNotValid(t *testing.T) {
 
-	ts := createServerValidationWrapper(func(t token.Token) (bool, string) { return false, "lol" })
+	ts := createServerValidationWrapper(func(t token.Token, l location.Location) bool { return false })
 
 	defer ts.Close()
 
@@ -95,19 +95,19 @@ func TestReadPersonFromCookies(t *testing.T) {
 	}
 
 	nameCookie := http.Cookie{
-		Name:  string(nameCookieName),
+		Name:  string(nameKey),
 		Value: p.Name,
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetCookieName),
+		Name:  string(streetKey),
 		Value: p.Street,
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzCookieName),
+		Name:  string(plzKey),
 		Value: p.PLZ,
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityCookieName),
+		Name:  string(cityKey),
 		Value: p.City,
 	}
 
@@ -122,12 +122,13 @@ func TestReadPersonFromCookies(t *testing.T) {
 }
 
 func TestCheckinHandler(t *testing.T) {
+
 	parseTemplates("test_assets/templates")
 
 	req, err := http.NewRequest("GET", "http://localhost", nil)
 	assert.NoError(t, err)
 
-	ctx := context.WithValue(req.Context(), locationContextKey, "TestLocation")
+	ctx := context.WithValue(req.Context(), locationKey, location.Location("TestLocation"))
 
 	recorder := httptest.NewRecorder()
 
