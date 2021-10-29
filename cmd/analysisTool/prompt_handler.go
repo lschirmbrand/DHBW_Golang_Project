@@ -8,93 +8,25 @@ import (
 	"strings"
 )
 
-func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *string) {
-	reader := bufio.NewReader(os.Stdin)
-	promptFormatter(1)
-	fmt.Println("-         Analyse-Tool         -")
-	fmt.Println("--------------------------------")
-
-	var filePath string
-
-	for {
-		date := dateInputHandler(reader, nil)
-		filePath = buildFilePath(date)
-		if _, err := os.Stat(filePath); err == nil {
-			break
+func assertQueryExport(s *[]string) bool {
+	qLen := queryLengthHandler(*s)
+	if qLen > 0 {
+		if exportHandler(qLen) {
+			return true
 		} else {
-			fmt.Println("No logs exist for the entered date.")
-			fmt.Println("Retry with different date, or abort.")
+			fmt.Println("Results of query wont get exported. \nAborting.")
+			return false
 		}
-	}
-
-	operation := operationInputHandler(reader)
-	content := *readDataFromFile(filePath)
-	data := *contentToArray(&content)
-
-	if operation == string(VISITORID) {
-		request, ok := searchRequestHandler(reader, string(LOCATION))
-		if ok {
-			analyseVisitorsByLocation(request, &data, reader)
-		}
-	} else if operation == string(LOCATIONID) {
-		request, ok := searchRequestHandler(reader, string(VISITOR))
-		if ok {
-			analyseLocationsByVisitor(request, &data, reader)
-		}
+	} else {
+		fmt.Println("No results were found for the queried selector.")
+		return false
 	}
 }
 
-func dateInputHandler(reader *bufio.Reader, accessed chan<- bool) string {
-	promptFormatter(1)
-	fmt.Println("Enter date in format YYYY-MM-DD: ")
-
-	for {
-		if accessed != nil {
-			accessed<-true
-		}
-		text, _ := reader.ReadString('\n')
-		text = trimStringBasedOnOS(text, true)
-		ok, err := validateDateInput(text)
-		check(err)
-		if ok {
-			return text
-		}
-		fmt.Println("Format wrong or pointless. Retry.")
-	}
-}
-
-func operationInputHandler(reader *bufio.Reader) string {
-	promptFormatter(1)
-	fmt.Println("Would you like to analyse:")
-	fmt.Println("Locations for a " + string(VISITOR) + "\t[1]")
-	fmt.Println("Visitors for a " + string(LOCATION) + "\t[2]")
-
-	for {
-		text, _ := reader.ReadString('\n')
-		ok, err := validateOperationInput(text)
-		check(err)
-		if ok {
-			return trimStringBasedOnOS(text, true)
-		}
-		fmt.Println("Input was wrong. Retry.")
-	}
-}
-
-func searchRequestHandler(reader *bufio.Reader, operation string) (string, bool) {
-	promptFormatter(1)
-	fmt.Println("You requested to search by: " + operation)
-	fmt.Println("Please enter the keyword you are searching for:")
-	input, e := reader.ReadString('\n')
-	if check(e) {
-		return trimStringBasedOnOS(input, true), true
-	}
-	return "", false
-}
-
-func exportHandler(reader *bufio.Reader, length int) bool {
-	promptFormatter(1)
+func exportHandler(length int) bool {
 	fmt.Println("The requested query resulted in ", length, " elements.")
 	fmt.Println("Do you want to export the query? [y/n]")
+	reader := bufio.NewReader(os.Stdin)
 	for {
 		input, e := reader.ReadString('\n')
 		check(e)
@@ -107,14 +39,19 @@ func exportHandler(reader *bufio.Reader, length int) bool {
 	}
 }
 
-func queryLengthHandler(slice []string) int {
-	return len(slice)
+func requestedHelp(args *[]string) bool {
+	if len(*args) > 0 {
+		for i := range *args {
+			if strings.EqualFold((*args)[i], "--help") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
-func promptFormatter(newlines int){
-	for i := 0; i < newlines; i++ {
-		fmt.Println()
-	}
+func queryLengthHandler(slice []string) int {
+	return len(slice)
 }
 
 func trimStringBasedOnOS(text string, isSuffix bool) string {

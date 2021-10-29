@@ -1,14 +1,16 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
-	"os"
 	"runtime"
 	"testing"
 )
+
+func TestAssertQueryExport(t *testing.T){
+	res := make([]string, 0)
+	assert.False(t, assertQueryExport(&res))
+}
 
 func TestTrimStringBasedOnOS(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -22,29 +24,24 @@ func TestTrimStringBasedOnOS(t *testing.T) {
 	assert.EqualValues(t, res, "teststring")
 }
 
-func TestDateInputHandler(t *testing.T) {
-	var reader bufio.Reader
-	in := "2021-10-28\n"
-	writer := bufio.NewWriter(os.Stdin)
-	accessed := make(chan bool)
-	go func() {
-		<-accessed
-		num, err := writer.WriteString(in)
-		fmt.Println(num)
-		checkError(err)
-		err = writer.Flush()
-		checkError(err)
-		fmt.Println("flushed")
-	}()
+func TestRequestHelp(t *testing.T){
+	args := make([]string, 0)
+	assert.False(t, requestedHelp(&args))
 
-	out := dateInputHandler(&reader, accessed)
-	assert.EqualValues(t, out, in)
+	args = append(args, "--something")
+	assert.False(t, requestedHelp(&args))
+
+	args = append(args, "--help")
+	assert.True(t, requestedHelp(&args))
+
+	args = append(args, "--something")
+	assert.True(t, requestedHelp(&args))
 }
 
-func checkError(err error){
+func checkErrorForTest(err error){
 	if err != nil {
-		return
-	} else {
 		log.Fatalln(err)
+	} else {
+		return
 	}
 }

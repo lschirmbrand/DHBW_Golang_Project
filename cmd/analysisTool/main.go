@@ -2,7 +2,6 @@ package main
 
 import (
 	"DHBW_Golang_Project/pkg/journal"
-	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -24,65 +23,78 @@ type result struct {
 const (
 	LOCATION           Operation = "Location"
 	VISITOR            Operation = "Visitor"
-	LOCATIONID         Operation = "1"
-	VISITORID          Operation = "2"
 	PATHTOLOGS                   = "logs/log-"
 	PATHTOCSV                    = "logs/export-"
+	DATEFORMAT                   = "2006-01-02"
 	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
 )
 
 func main() {
+	datePtr := flag.String("date", time.Now().Format(DATEFORMAT), "Date of the requested query. Format: YYYY-MM-DD")
+	operationPtr := flag.String("operation", string(VISITOR), "Operation of the requested query. Format: Visitor or Location")
+	queryPtr := flag.String("query", "", "The keyword of the requested query.")
+	flag.Parse()
 
-	datePtr := flag.String("date", "", "a date")
-	operationPtr := flag.String("operation", "", "a date")
-	queryPtr := flag.String("query", "", "a date")
+	args := flag.Args()
+	if !requestedHelp(&args) {
+		startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
+	}
+}
 
-	startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
+func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *string) bool {
+	var selectedOperation Operation
+	if ok, fails := checkFlagFunctionality(datePtr, operationPtr, &selectedOperation, queryPtr); !ok {
+		for i := range *fails {
+			fmt.Println((*fails)[i])
+			return false
+		}
+	} else {
+		fileContent := readDataFromFile(buildFileLogPath(*datePtr))
+		loggedCredits := contentToCredits(fileContent)
+		var qryResults *[]string
+		if strings.EqualFold(*operationPtr, string(VISITOR)) {
+			qryResults = analyseLocationsByVisitor(*queryPtr, loggedCredits)
+		} else {
+			qryResults = analyseVisitorsByLocation(*queryPtr, loggedCredits)
+		}
+
+		if assertQueryExport(qryResults) {
+			filePath := buildFileCSVPath(selectedOperation, *queryPtr)
+			exportToCSVFile(qryResults, *queryPtr, selectedOperation, filePath)
+			return true
+		}
+	}
+	return false
 }
 
 func check(e error) bool {
 	if e != nil {
 		log.Fatalln(e)
-		return false
 	}
 	return true
 }
 
-func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials, reader *bufio.Reader) {
+func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials) *[]string {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Name, visitor) {
 			s = append(s, entry.Location)
 		}
 	}
-	assertQueryExport(s, reader, VISITOR, visitor)
+	return &s
 }
 
-func analyseVisitorsByLocation(location string, data *[]journal.Credentials, reader *bufio.Reader) {
+func analyseVisitorsByLocation(location string, data *[]journal.Credentials) *[]string {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Location, location) {
 			s = append(s, entry.Name)
 		}
 	}
-	assertQueryExport(s, reader, LOCATION, location)
+	return &s
 }
 
-func assertQueryExport(s []string, reader *bufio.Reader, operation Operation, selector string) {
-	qLen := queryLengthHandler(s)
-	if qLen > 0 {
-		if exportHandler(reader, qLen) {
-			exportToCSVFile(s, selector, string(operation))
-		} else {
-			promptFormatter(1)
-			fmt.Println("Results of query wont get exported. \nAborting.")
-		}
-	} else {
-		fmt.Println("No results were found for the queried selector.")
-	}
-}
-
-func contentToArray(content *[]string) *[]journal.Credentials {
+func contentToCredits(content *[]string) *[]journal.Credentials {
 	data := make([]journal.Credentials, len(*content))
 	jobs := jobFactory(*content)
 	results, imageDone := resultCollector(&data)

@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 )
@@ -19,31 +18,28 @@ func readDataFromFile(filePath string) *[]string {
 	return &out
 }
 
-func exportToCSVFile(results []string, selector string, operation string) {
-	filePath := PATHTOCSV + operation+"_"+selector+".csv"
-	f, _ := os.Create(filePath)
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(f)
+func exportToCSVFile(results *[]string, selector string, operation Operation, filePath string) {
+	f, e := os.Create(filePath)
+	check(e)
+	defer f.Close()
 
-	csvLineData := make([]string, len(results) + 1)
-	csvLineData[0] = "Results for: " + selector + "\n"
-	for i := 1; i< len(results)+ 1; i++ {
-		csvLineData[i] = results[i-1]
-	}
+	csvHeader := make([]string, 1)
+	csvHeader[0] = "Results for: " + selector
 
 	w := csv.NewWriter(f)
-	e := w.Write(csvLineData)
+	e = w.Write(csvHeader)
+	check(e)
+	e = w.Write(*(results))
 	w.Flush()
 	check(e)
 
-	promptFormatter(1)
 	fmt.Println("The query-result was exported to: " + filePath)
 }
 
-func buildFilePath(date string) string {
+func buildFileLogPath(date string) string {
 	return PATHTOLOGS + date + ".txt"
+}
+
+func buildFileCSVPath(operation Operation, selector string) string {
+	return PATHTOCSV + string(operation)+"_"+selector+".csv"
 }
