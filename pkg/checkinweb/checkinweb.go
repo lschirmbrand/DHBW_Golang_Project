@@ -1,6 +1,7 @@
-package main
+package checkinweb
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
@@ -33,46 +34,46 @@ type Person struct {
 	City   string
 }
 
-type contextKey string
-type cookieName string
+type key string
 
 const (
-	locationContextKey contextKey = "location"
-	nameCookieName     cookieName = "name"
-	streetCookieName   cookieName = "street"
-	plzCookieName      cookieName = "plz"
-	cityCookieName     cookieName = "city"
+	locationKey key = "location"
+	nameKey     key = "name"
+	streetKey   key = "street"
+	plzKey      key = "plz"
+	cityKey     key = "city"
 )
 
-var checkInTemplate *template.Template
-var checkedInTemplate *template.Template
-var checkedOutTemplate *template.Template
+var (
+	checkInTemplate    *template.Template
+	checkedInTemplate  *template.Template
+	checkedOutTemplate *template.Template
+)
 
-func checkinMux() http.Handler {
+func Mux() http.Handler {
 	mux := http.NewServeMux()
 
-	parseCheckinTemplates("web/templates")
+	parseTemplates(*config.TemplatePath)
 
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkedin", checkedInHandler)
 	mux.HandleFunc("/checkedout", checkedOutHandler)
 
-	fs := http.FileServer(http.Dir("web/static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	// fs := http.FileServer(http.Dir("web/static"))
+	// mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	return mux
 }
 
-func parseCheckinTemplates(templateDir string) {
+func parseTemplates(templateDir string) {
 	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
 	checkedInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedin.html")))
 	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
-
 }
 
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	l := r.Context().Value(locationContextKey).(string)
+	l := r.Context().Value(locationKey).(string)
 
 	p := readPersonFromCookies(r)
 
@@ -124,19 +125,19 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 func savePersonToCookies(rw http.ResponseWriter, p *Person) {
 	nameCookie := http.Cookie{
-		Name:  string(nameCookieName),
+		Name:  string(nameKey),
 		Value: p.Name,
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetCookieName),
+		Name:  string(streetKey),
 		Value: p.Street,
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzCookieName),
+		Name:  string(plzKey),
 		Value: p.PLZ,
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityCookieName),
+		Name:  string(cityKey),
 		Value: p.City,
 	}
 
@@ -154,22 +155,22 @@ func readPersonFromCookies(r *http.Request) *Person {
 		City:   "",
 	}
 
-	name, err := r.Cookie(string(nameCookieName))
+	name, err := r.Cookie(string(nameKey))
 	if err == nil {
 		p.Name = name.Value
 	}
 
-	street, err := r.Cookie(string(streetCookieName))
+	street, err := r.Cookie(string(streetKey))
 	if err == nil {
 		p.Street = street.Value
 	}
 
-	plz, err := r.Cookie(string(plzCookieName))
+	plz, err := r.Cookie(string(plzKey))
 	if err == nil {
 		p.PLZ = plz.Value
 	}
 
-	city, err := r.Cookie(string(cityCookieName))
+	city, err := r.Cookie(string(cityKey))
 	if err == nil {
 		p.City = city.Value
 	}
@@ -183,7 +184,7 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 		t := token.Token(r.URL.Query().Get("token"))
 		l := location.Location(r.URL.Query().Get("location"))
 		if valid := validator(t, l); valid {
-			ctx := context.WithValue(r.Context(), locationContextKey, l)
+			ctx := context.WithValue(r.Context(), locationKey, l)
 
 			handler(w, r.WithContext(ctx))
 		} else {

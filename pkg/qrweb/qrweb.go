@@ -1,4 +1,4 @@
-package main
+package qrweb
 
 import (
 	"DHBW_Golang_Project/pkg/config"
@@ -15,9 +15,8 @@ import (
 
 var (
 	qrTemplate     *template.Template
-	pathToQr       string
 	pathToLocation string
-	CheckinUrl     string
+	checkinUrls    map[location.Location]string
 )
 
 type qrCodePageData struct {
@@ -25,16 +24,15 @@ type qrCodePageData struct {
 	Location    string
 }
 
-func qrMux() http.Handler {
+func Mux() http.Handler {
 
-	parseQrTemplates("web/templates")
-	pathToPic("assets/qr-codes/")
+	parseTemplates(*config.TemplatePath)
 	pathToLocations("assets/")
 
 	go reloadQR()
 
 	mux := http.NewServeMux()
-	mux.Handle("/qr-codes/", http.StripPrefix("/qr-codes/", http.FileServer(http.Dir("assets/qr-codes/"))))
+	mux.Handle("/qr-codes/", http.StripPrefix("/qr-codes/", http.FileServer(http.Dir(*config.QrCodePath))))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/qr", handleQR)
@@ -42,7 +40,7 @@ func qrMux() http.Handler {
 	return mux
 }
 
-func parseQrTemplates(templateDir string) {
+func parseTemplates(templateDir string) {
 	qrTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "qr-code.html")))
 }
 
@@ -69,15 +67,13 @@ func valideLocation(expLocations location.Location) bool {
 	return false
 }
 
-func pathToPic(pictureDir string) {
-	pathToQr = pictureDir
-}
-
 func pathToLocations(locationsDir string) {
 	pathToLocation = locationsDir
 }
 
 func reloadQR() {
+	checkinUrls = make(map[location.Location]string)
+
 	createUrl()
 	ticker := time.NewTicker(time.Duration(*config.RefreshTime * 1000000000))
 	for range ticker.C {
@@ -89,6 +85,7 @@ func createUrl() {
 	locations, _ := location.ReadLocations(pathToLocation + "locations.xml")
 	for _, loc := range locations {
 		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v", *config.CheckinPort, token.CreateToken(loc), loc)
-		qrcode.WriteFile(url, qrcode.Medium, 256, pathToQr+string(loc)+".jpg")
+		qrcode.WriteFile(url, qrcode.Medium, 256, path.Join(*config.QrCodePath, string(loc)+".jpg"))
+		checkinUrls[loc] = url
 	}
 }
