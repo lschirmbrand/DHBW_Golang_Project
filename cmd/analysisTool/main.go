@@ -2,6 +2,7 @@ package main
 
 import (
 	"DHBW_Golang_Project/pkg/journal"
+	"DHBW_Golang_Project/pkg/location"
 	"flag"
 	"fmt"
 	"log"
@@ -38,6 +39,12 @@ func main() {
 	args := flag.Args()
 	if !requestedHelp(&args) {
 		startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
+	} else {
+		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION> -query=<QUERYKEYWORD>")
+		fmt.Println("Standardvalue for:")
+		fmt.Println("Date:\tDate today")
+		fmt.Println("Operation:\tVisitor")
+		fmt.Println("Query:\t<none>")
 	}
 }
 
@@ -78,7 +85,7 @@ func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials) *[]s
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Name, visitor) {
-			s = append(s, entry.Location)
+			s = append(s, string(entry.Location))
 		}
 	}
 	return &s
@@ -87,7 +94,7 @@ func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials) *[]s
 func analyseVisitorsByLocation(location string, data *[]journal.Credentials) *[]string {
 	s := make([]string, 0)
 	for _, entry := range *data {
-		if strings.EqualFold(entry.Location, location) {
+		if strings.EqualFold(string(entry.Location), location) {
 			s = append(s, entry.Name)
 		}
 	}
@@ -122,7 +129,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 		cred.Login = strings.EqualFold(trimStringBasedOnOS(strings.ToLower(cells[0]), false), "login")
 		cred.Name = cells[1]
 		cred.Address = cells[2]
-		cred.Location = strings.ToLower(cells[3])
+		cred.Location = location.Location(strings.ToLower(cells[3]))
 		var err error
 		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[4])
 		check(err)

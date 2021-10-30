@@ -42,7 +42,7 @@ func exportHandler(length int) bool {
 func requestedHelp(args *[]string) bool {
 	if len(*args) > 0 {
 		for i := range *args {
-			if strings.EqualFold((*args)[i], "--help") {
+			if strings.EqualFold((*args)[i], "-help") {
 				return true
 			}
 		}
