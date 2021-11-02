@@ -18,5 +18,5 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-.txt
-.idea/workspace.xml
+.idea
+logs

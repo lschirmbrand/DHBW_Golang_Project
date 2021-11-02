@@ -1,83 +1,107 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/journal"
 	"github.com/stretchr/testify/assert"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
-func TestDateValidator(t *testing.T) {
-	res, _ := validateDateInput("01-01-1111")
-	assert.False(t, res)
-	res, _ = validateDateInput("01-13-2021")
-	assert.False(t, res)
-	res, _ = validateDateInput("32-10-2021")
-	assert.False(t, res)
-	res, _ = validateDateInput("13-10-2021")
-	assert.True(t, res)
-	res, _ = validateDateInput("13.10.2021")
-	assert.False(t, res)
-	res, _ = validateDateInput("13/10/2021")
-	assert.False(t, res)
-}
-
-func TestOperationValidator(t *testing.T) {
-	res, _ := validateOperationInput("")
-	assert.False(t, res)
-	res, _ = validateOperationInput("a")
-	assert.False(t, res)
-	res, _ = validateOperationInput("A")
-	assert.False(t, res)
-	res, _ = validateOperationInput("0")
-	assert.False(t, res)
-	res, _ = validateOperationInput("3")
-	assert.False(t, res)
-	res, _ = validateOperationInput("11")
-	assert.False(t, res)
-	res, _ = validateOperationInput("01")
-	assert.False(t, res)
-	res, _ = validateOperationInput("1")
-	assert.True(t, res)
-	res, _ = validateOperationInput("2")
-	assert.True(t, res)
-
-}
-
-func TestTrimStringBasedOnOS(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		res := trimStringBasedOnOS("teststring\r\n")
-		assert.EqualValues(t, res, "teststring")
-	} else {
-		res := trimStringBasedOnOS("teststring\n")
-		assert.EqualValues(t, res, "teststring")
-	}
-}
-
 func TestContentToArray(t *testing.T) {
-	var content = strings.Split("address1,name1;\naddress2,name2;\naddress3,name3;\n", "\n")
-	contentArray := *contentToArray(content)
-	assert.EqualValues(t, contentArray[0][0], "address1")
-	assert.EqualValues(t, contentArray[0][1], "name1")
-	assert.EqualValues(t, contentArray[1][0], "address2")
-	assert.EqualValues(t, contentArray[1][1], "name2")
-	assert.EqualValues(t, contentArray[2][0], "address3")
-	assert.EqualValues(t, contentArray[2][1], "name3")
+	var content = strings.Split("LOGIN,name1,address1,location1,20-10-2021 09:44:25,20-10-2021 09:44:25;\n"+
+		"LOGIN,name2,address2,location2,20-10-2021 09:44:41,20-10-2021 09:44:41;", "\n")
+	contentArray := *contentToCredits(&content)
+	assert.EqualValues(t, contentArray[0].Login, true)
+	assert.EqualValues(t, contentArray[0].Name, "name1")
+	assert.EqualValues(t, contentArray[0].Address, "address1")
+	assert.EqualValues(t, contentArray[0].Location, "location1")
+	assert.EqualValues(t, contentArray[0].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[1].Login, true)
+	assert.EqualValues(t, contentArray[1].Name, "name2")
+	assert.EqualValues(t, contentArray[1].Address, "address2")
+	assert.EqualValues(t, contentArray[1].Location, "location2")
+	assert.EqualValues(t, contentArray[1].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
-func TestReadDataFromFile(t *testing.T) {
-	in := "value1-x-y-z;\nvalue2.,!?;\nvalue3\t;\n"
-	expected := strings.Split(in, "\n")
-	filePath := filepath.Join("../../logs/temporaryForTest.txt")
-	f, _ := os.Create(filePath)
-	f.WriteString(in)
-	defer os.Remove(filePath)
-	defer f.Close()
-
-	out := *readDataFromFile(filePath)
-	for i := 0; i < len(out)-1; i++ {
-		assert.EqualValues(t, expected[i], out[i])
+func BenchmarkPerformanceOfData(b *testing.B) {
+	fileContent := "LOGIN,name,address,location,20-10-2021 09:44:25,20-10-2021 09:44:25;\nLOGIN,name,address,location,20-10-2021 09:44:41,20-10-2021 09:44:41;\nLOGIN,name,address,location,20-10-2021 10:07:13,20-10-2021 10:07:13;\nLOGIN,name,address,location,20-10-2021 10:07:18,20-10-2021 10:07:18;\nLOGIN,name,address,location,20-10-2021 10:07:28,20-10-2021 10:07:28;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;"
+	for n := 0; n < b.N; n++ {
+		content := strings.Split(fileContent, "\n")
+		contentToCredits(&content)
 	}
 }
+
+func TestStartAnalyticalToolDiaglog(t *testing.T){
+	filePath := "../../" + buildFileLogPath(time.Now().Format(DATEFORMAT))
+	_, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	checkErrorForTest(err)
+
+	datePtr := ""
+	operationPtr := ""
+	queryPtr := ""
+	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
+
+	datePtr = "../../"+time.Now().Format(DATEFORMAT)
+	operationPtr = "Visitor"
+	queryPtr = "abcdefghijklmnopqrstuvwxyz"
+	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
+}
+
+func TestAnalyseLocationsByVisitor(t *testing.T){
+	creds := make([]journal.Credentials, 0)
+	visitor := "Gustav Gans"
+	res := analyseLocationsByVisitor(visitor, &creds)
+	assert.EqualValues(t, 0, len(*res))
+
+	var searchedCred = journal.Credentials {
+		Name: "Gustav Gans",
+		Location: "Entenhausen",
+	}
+
+	creds = append(creds, searchedCred)
+	res = analyseLocationsByVisitor(visitor, &creds)
+	assert.EqualValues(t, 1, len(*res))
+	assert.EqualValues(t, "Entenhausen", (*res)[0])
+
+	var notSearchedCred = journal.Credentials {
+		Name: "Donald Duck",
+		Location: "Entenhausen",
+	}
+
+	creds = append(creds, notSearchedCred)
+	res = analyseLocationsByVisitor(visitor, &creds)
+	assert.EqualValues(t, 1, len(*res))
+	assert.EqualValues(t, "Entenhausen", (*res)[0])
+}
+
+func TestAnalyseVisitorsByLocation(t *testing.T){
+	creds := make([]journal.Credentials, 0)
+	location := "Entenhausen"
+	res := analyseVisitorsByLocation(location, &creds)
+	assert.EqualValues(t, 0, len(*res))
+
+	var searchedCred = journal.Credentials {
+		Name: "Gustav Gans",
+		Location: "Entenhausen",
+	}
+
+	creds = append(creds, searchedCred)
+	res = analyseVisitorsByLocation(location, &creds)
+	assert.EqualValues(t, 1, len(*res))
+	assert.EqualValues(t, "Gustav Gans", (*res)[0])
+
+	var notSearchedCred = journal.Credentials {
+		Name: "Bambis Mutter",
+		Location: "Friedhof",
+	}
+
+	creds = append(creds, notSearchedCred)
+	res = analyseVisitorsByLocation(location, &creds)
+	assert.EqualValues(t, 1, len(*res))
+	assert.EqualValues(t, "Gustav Gans", (*res)[0])
+}
+
