@@ -28,6 +28,7 @@ func Mux() http.Handler {
 
 	parseTemplates(*config.TemplatePath)
 	location.ReadLocations(*config.LocationFilePath)
+
 	go reloadQR()
 
 	mux := http.NewServeMux()
@@ -39,13 +40,17 @@ func Mux() http.Handler {
 	return mux
 }
 
+//create template with path
 func parseTemplates(templateDir string) {
 	qrTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "qr-code.html")))
 }
 
+//QR-Website handler
 func handleQR(w http.ResponseWriter, r *http.Request) {
+	//get actual location from URL
 	loc := location.Location(r.URL.Query().Get("location"))
 
+	//check if location is valide
 	if location.Validate(loc) {
 
 		data := qrCodePageData{
@@ -53,10 +58,12 @@ func handleQR(w http.ResponseWriter, r *http.Request) {
 			Location:    string(loc),
 			CheckInUrl:  checkinUrls[loc],
 		}
+		//pass data to template
 		qrTemplate.Execute(w, data)
 	}
 }
 
+//Start timer to update QR-Code
 func reloadQR() {
 	checkinUrls = make(map[location.Location]string)
 
@@ -67,10 +74,16 @@ func reloadQR() {
 	}
 }
 
+//Create checkin-URL with port and location
 func createUrl() {
+	//for every Location the QR-Codes will be updated
 	for _, loc := range location.Locations {
 		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v", *config.CheckinPort, token.CreateToken(loc), loc)
+
+		//create qr-picture and safe
 		qrcode.WriteFile(url, qrcode.Medium, 256, path.Join(*config.QrCodePath, string(loc)+".jpg"))
+
+		//add url to validated list
 		checkinUrls[loc] = url
 	}
 }

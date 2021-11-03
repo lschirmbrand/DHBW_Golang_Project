@@ -6,6 +6,7 @@ import (
 )
 
 func TestValidateToken(t *testing.T) {
+	//create 3 Token and check validation
 	tok1 := Token("test")
 	tok2 := CreateToken("DE")
 	tok3 := CreateToken("ENG")
@@ -13,6 +14,7 @@ func TestValidateToken(t *testing.T) {
 	valid1 := Validate(tok1, "test")
 	valid2 := Validate(tok2, "DE")
 	valid3 := Validate(tok3, "ENG")
+
 	assert.False(t, valid1)
 	assert.True(t, valid2)
 	assert.True(t, valid3)

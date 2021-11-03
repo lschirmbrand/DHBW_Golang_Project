@@ -12,10 +12,12 @@ import (
 )
 
 func TestQrHandler(t *testing.T) {
+	//get start-parameters, create Template and get locations
 	config.Configure()
 	parseTemplates("../../web/templates")
 	location.ReadLocations("../../assets/locations.xml")
 
+	//create a request for every location
 	for _, actLocation := range location.Locations {
 		req, err := http.NewRequest("GET", "http://localhost:8142/qr?location="+string(actLocation), nil)
 		assert.NoError(t, err)
