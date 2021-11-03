@@ -11,12 +11,11 @@ import (
 )
 
 type Credentials struct {
-	Login    bool
-	Name     string
-	Address  string
-	Location location.Location
-	TimeCome time.Time
-	TimeGone time.Time
+	Login     bool
+	Name      string
+	Address   string
+	Location  location.Location
+	Timestamp time.Time
 }
 
 const PATHTOLOGS = "logs"
@@ -90,9 +89,7 @@ func buildCredits(credits *Credentials) string {
 	sb.WriteString(",")
 	sb.WriteString(string(credits.Location))
 	sb.WriteString(",")
-	sb.WriteString(credits.TimeCome.Format(DATEFORMATWITHTIME))
-	sb.WriteString(",")
-	sb.WriteString(credits.TimeGone.Format(DATEFORMATWITHTIME))
+	sb.WriteString(credits.Timestamp.Format(DATEFORMATWITHTIME))
 	sb.WriteString(";\n")
 	return sb.String()
 }
