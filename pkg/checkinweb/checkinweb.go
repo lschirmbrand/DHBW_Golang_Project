@@ -2,10 +2,12 @@ package checkinweb
 
 import (
 	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path"
@@ -104,10 +106,15 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	savePersonToCookies(rw, &p)
 
-	// journal.LogToJournal(journal.Credentials{
-	// 	Name:    p.Name,
-	// 	Address: location,
-	// }, false)
+	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+
+	journal.LogInToJournal(&journal.Credentials{
+		Login:    true,
+		Name:     p.Name,
+		Address:  address,
+		Location: data.Location,
+		TimeCome: time.Now(),
+	})
 
 	checkedInTemplate.Execute(rw, data)
 
@@ -116,10 +123,27 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
+	p := Person{
+		Name:   r.PostFormValue("name"),
+		Street: r.PostFormValue("street"),
+		PLZ:    r.PostFormValue("plz"),
+		City:   r.PostFormValue("city"),
+	}
+
 	data := CheckedoutPageData{
-		Person:   Person{Name: r.PostFormValue("name")},
+		Person:   p,
 		Location: location.Location(r.PostFormValue("location")),
 	}
+
+	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+
+	journal.LogOutToJournal(&journal.Credentials{
+		Login:    false,
+		Name:     p.Name,
+		Address:  address,
+		Location: data.Location,
+		TimeGone: time.Now(),
+	})
 
 	checkedOutTemplate.Execute(rw, data)
 }

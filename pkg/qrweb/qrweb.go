@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -70,6 +71,9 @@ func reloadQR() {
 func createUrl() {
 	for _, loc := range location.Locations {
 		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v", *config.CheckinPort, token.CreateToken(loc), loc)
+		if _, err := os.Stat(*config.QrCodePath); os.IsNotExist(err) {
+			os.MkdirAll(*config.QrCodePath, 0755)
+		}
 		qrcode.WriteFile(url, qrcode.Medium, 256, path.Join(*config.QrCodePath, string(loc)+".jpg"))
 		checkinUrls[loc] = url
 	}

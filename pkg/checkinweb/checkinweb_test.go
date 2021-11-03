@@ -1,6 +1,7 @@
 package checkinweb
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
@@ -56,6 +57,8 @@ func TestTokenValidationWrapperNotValid(t *testing.T) {
 }
 
 func TestSavePersonToCookies(t *testing.T) {
+	config.Configure()
+
 	recorder := httptest.NewRecorder()
 
 	p := Person{
@@ -70,16 +73,16 @@ func TestSavePersonToCookies(t *testing.T) {
 	cookies := recorder.Result().Cookies()
 
 	nameCookie := cookies[0]
-	assert.Equal(t, p.Name, nameCookie.Value)
+	assert.Equal(t, p.Name, decodeFromBase64(nameCookie.Value))
 
 	streetCookie := cookies[1]
-	assert.Equal(t, p.Street, streetCookie.Value)
+	assert.Equal(t, p.Street, decodeFromBase64(streetCookie.Value))
 
 	plzCookie := cookies[2]
-	assert.Equal(t, p.PLZ, plzCookie.Value)
+	assert.Equal(t, p.PLZ, decodeFromBase64(plzCookie.Value))
 
 	cityCookie := cookies[3]
-	assert.Equal(t, p.City, cityCookie.Value)
+	assert.Equal(t, p.City, decodeFromBase64(cityCookie.Value))
 
 }
 
@@ -96,25 +99,27 @@ func TestReadPersonFromCookies(t *testing.T) {
 
 	nameCookie := http.Cookie{
 		Name:  string(nameKey),
-		Value: p.Name,
+		Value: encodeToBase64(p.Name),
 	}
 	streetCookie := http.Cookie{
 		Name:  string(streetKey),
-		Value: p.Street,
+		Value: encodeToBase64(p.Street),
 	}
 	plzCookie := http.Cookie{
 		Name:  string(plzKey),
-		Value: p.PLZ,
+		Value: encodeToBase64(p.PLZ),
 	}
 	cityCookie := http.Cookie{
 		Name:  string(cityKey),
-		Value: p.City,
+		Value: encodeToBase64(p.City),
 	}
 
 	req.AddCookie(&nameCookie)
 	req.AddCookie(&streetCookie)
 	req.AddCookie(&plzCookie)
 	req.AddCookie(&cityCookie)
+
+	fmt.Println(nameCookie)
 
 	p1 := readPersonFromCookies(req)
 
@@ -156,15 +161,15 @@ func TestCheckedInHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\n", string(body))
+	assert.Equal(t, "Max Mustermann,TestLocation\r\n", string(body))
 
 	// cookies should be set
 	cookies := resp.Cookies()
 
-	assert.Equal(t, "Max Mustermann", cookies[0].Value)
-	assert.Equal(t, "Musterstr. 12", cookies[1].Value)
-	assert.Equal(t, "12345", cookies[2].Value)
-	assert.Equal(t, "Musterstadt", cookies[3].Value)
+	assert.Equal(t, "Max Mustermann", decodeFromBase64(cookies[0].Value))
+	assert.Equal(t, "Musterstr. 12", decodeFromBase64(cookies[1].Value))
+	assert.Equal(t, "12345", decodeFromBase64(cookies[2].Value))
+	assert.Equal(t, "Musterstadt", decodeFromBase64(cookies[3].Value))
 }
 
 func TestCheckedOutHandler(t *testing.T) {
@@ -186,5 +191,5 @@ func TestCheckedOutHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\n", string(body))
+	assert.Equal(t, "Max Mustermann,TestLocation\r\n", string(body))
 }

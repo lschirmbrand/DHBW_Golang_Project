@@ -52,26 +52,25 @@ func LogInToJournal(cred *Credentials) bool {
 func logToJournal(cred *Credentials) bool {
 	logmsg := buildCredits(cred)
 	filePath := returnFilepath()
-	if _, err := os.Stat(*LogPath); !os.IsNotExist(err) {
-		f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-
-		if !check(e) {
-			return false
-		}
-
-		defer func(f *os.File) {
-			err := f.Close()
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}(f)
-
-		_, e = f.WriteString(logmsg)
-		return check(e)
-	} else {
-		check(err)
+	if _, err := os.Stat(*LogPath); os.IsNotExist(err) {
+		os.MkdirAll(*LogPath, 0755)
 	}
-	return false
+
+	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+
+	if !check(e) {
+		return false
+	}
+
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(f)
+
+	_, e = f.WriteString(logmsg)
+	return check(e)
 }
 
 func returnFilepath() string {
