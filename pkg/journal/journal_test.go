@@ -2,7 +2,6 @@ package journal
 
 import (
 	"DHBW_Golang_Project/pkg/config"
-	"flag"
 	"log"
 	"os"
 	"testing"
@@ -11,7 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	testLogPath string = "../../test-logs"
+)
+
 func TestLogToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Login:    true,
 		Address:  "Address",
@@ -20,8 +27,6 @@ func TestLogToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-
-	modifyFlagsForTestCase(true, true)
 
 	filePath := returnFilepath()
 	logToJournal(&cred)
@@ -38,6 +43,10 @@ func TestLogToJournal(t *testing.T) {
 }
 
 func TestLogInToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Address:  "Address",
 		Name:     "Name",
@@ -45,8 +54,6 @@ func TestLogInToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-
-	modifyFlagsForTestCase(true, true)
 
 	LogInToJournal(&cred)
 
@@ -64,6 +71,10 @@ func TestLogInToJournal(t *testing.T) {
 }
 
 func TestLogOutToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Address:  "Address",
 		Name:     "Name",
@@ -71,7 +82,6 @@ func TestLogOutToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-	modifyFlagsForTestCase(true, true)
 
 	LogOutToJournal(&cred)
 
@@ -100,7 +110,10 @@ func TestReturnCreditsToString(t *testing.T) {
 }
 
 func TestLogTestExample(t *testing.T) {
-	modifyFlagsForTestCase(true, false)
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Login:    true,
 		Name:     "Name",
@@ -114,14 +127,11 @@ func TestLogTestExample(t *testing.T) {
 	}
 }
 
-func modifyFlagsForTestCase(filePath bool, fileName bool) {
-	if filePath {
-		*config.LogPath = "../../logs"
-	}
-	if fileName {
-		*LogFilename = "testcase"
-	}
-	if filePath || fileName {
-		flag.Parse()
-	}
+func configure() {
+
+	config.LogPath = &testLogPath
+}
+
+func cleanupTestLogs() {
+	os.RemoveAll(testLogPath)
 }
