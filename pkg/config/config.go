@@ -1,12 +1,15 @@
 package config
 
-import "flag"
+import (
+	"flag"
+)
 
 var (
 	CheckinPort *int
 	QRCodePort  *int
 
-	RefreshTime *int
+	RefreshTime    *int
+	CookieLifetime *int
 
 	TemplatePath     *string
 	QrCodePath       *string
@@ -21,6 +24,7 @@ func Configure() {
 		QRCodePort = flag.Int("qrCodePort", 8444, "port of qr-code server")
 
 		RefreshTime = flag.Int("refreshTime", 60, "refresh time for qr-codes in seconds")
+		CookieLifetime = flag.Int("cookieLifeTime", 24*356, "Lifetime of Cookies in Hours")
 
 		TemplatePath = flag.String("templatePath", "web/templates", "path to html-template directory")
 		QrCodePath = flag.String("qrCodePath", "assets/qr-codes", "path to save qr-codes")

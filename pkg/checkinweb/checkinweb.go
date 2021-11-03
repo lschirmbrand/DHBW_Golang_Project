@@ -5,6 +5,7 @@ import (
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
+	"encoding/base64"
 	"html/template"
 	"net/http"
 	"path"
@@ -124,27 +125,38 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func savePersonToCookies(rw http.ResponseWriter, p *Person) {
+
+	lifetime := time.Hour * time.Duration(*config.CookieLifetime)
+
 	nameCookie := http.Cookie{
-		Name:  string(nameKey),
-		Value: p.Name,
+		Name:    string(nameKey),
+		Value:   encodeToBase64(p.Name),
+		Expires: time.Now().Add(lifetime),
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetKey),
-		Value: p.Street,
+		Name:    string(streetKey),
+		Value:   encodeToBase64(p.Street),
+		Expires: time.Now().Add(lifetime),
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzKey),
-		Value: p.PLZ,
+		Name:    string(plzKey),
+		Value:   encodeToBase64(p.PLZ),
+		Expires: time.Now().Add(lifetime),
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityKey),
-		Value: p.City,
+		Name:    string(cityKey),
+		Value:   encodeToBase64(p.City),
+		Expires: time.Now().Add(lifetime),
 	}
 
 	http.SetCookie(rw, &nameCookie)
 	http.SetCookie(rw, &streetCookie)
 	http.SetCookie(rw, &plzCookie)
 	http.SetCookie(rw, &cityCookie)
+}
+
+func encodeToBase64(str string) string {
+	return base64.RawStdEncoding.EncodeToString([]byte(str))
 }
 
 func readPersonFromCookies(r *http.Request) *Person {
@@ -157,26 +169,31 @@ func readPersonFromCookies(r *http.Request) *Person {
 
 	name, err := r.Cookie(string(nameKey))
 	if err == nil {
-		p.Name = name.Value
+		p.Name = decodeFromBase64(name.Value)
 	}
 
 	street, err := r.Cookie(string(streetKey))
 	if err == nil {
-		p.Street = street.Value
+		p.Street = decodeFromBase64(street.Value)
 	}
 
 	plz, err := r.Cookie(string(plzKey))
 	if err == nil {
-		p.PLZ = plz.Value
+		p.PLZ = decodeFromBase64(plz.Value)
 	}
 
 	city, err := r.Cookie(string(cityKey))
 	if err == nil {
-		p.City = city.Value
+		p.City = decodeFromBase64(city.Value)
 	}
 
 	return &p
+}
 
+func decodeFromBase64(encoded string) string {
+	decoded, _ := base64.RawStdEncoding.DecodeString(encoded)
+
+	return string(decoded)
 }
 
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
