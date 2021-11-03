@@ -20,6 +20,9 @@
 
         <form method="post" action="checkedout">
             <input name="name" value="{{.Name}}" hidden>
+            <input name="street" value="{{.Street}}" hidden>
+            <input name="plz" value="{{.PLZ}}" hidden>
+            <input name="city" value="{{.City}}" hidden>
             <input name="location" value="{{.Location}}" hidden>
             <button class="btn btn-primary">Auschecken</button>
         </form>
