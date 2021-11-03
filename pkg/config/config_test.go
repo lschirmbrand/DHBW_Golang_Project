@@ -9,7 +9,7 @@ import (
 // test if all default values are set
 func TestConfigure(t *testing.T) {
 
-	Configure()
+	ConfigureWeb()
 
 	assert.Equal(t, 8443, *CheckinPort)
 	assert.Equal(t, 8444, *QRCodePort)

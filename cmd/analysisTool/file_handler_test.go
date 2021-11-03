@@ -1,14 +1,16 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"encoding/csv"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadDataFromFile(t *testing.T) {
@@ -38,6 +40,7 @@ func TestReadDataFromFile(t *testing.T) {
 }
 
 func TestExportToCSVFile(t *testing.T) {
+	config.ConfigureAnalysisTool()
 	results := []string{
 		"location1", "location2", "location3", "location4", "location5",
 	}
@@ -70,7 +73,7 @@ func TestExportToCSVFile(t *testing.T) {
 }
 
 func TestBuildFileLogPath(t *testing.T) {
-	in := time.Now().Format(DATEFORMAT)
+	in := time.Now().Format(config.DATEFORMAT)
 	out := buildFileLogPath(in)
 	expected := "logs/log-" + in + ".txt"
 	assert.EqualValues(t, expected, out)

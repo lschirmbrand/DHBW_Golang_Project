@@ -1,12 +1,14 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContentToArray(t *testing.T) {
@@ -17,14 +19,14 @@ func TestContentToArray(t *testing.T) {
 	assert.EqualValues(t, contentArray[0].Name, "name1")
 	assert.EqualValues(t, contentArray[0].Address, "address1")
 	assert.EqualValues(t, contentArray[0].Location, "location1")
-	assert.EqualValues(t, contentArray[0].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
-	assert.EqualValues(t, contentArray[0].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeCome.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:25")
+	assert.EqualValues(t, contentArray[0].TimeGone.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:25")
 	assert.EqualValues(t, contentArray[1].Login, true)
 	assert.EqualValues(t, contentArray[1].Name, "name2")
 	assert.EqualValues(t, contentArray[1].Address, "address2")
 	assert.EqualValues(t, contentArray[1].Location, "location2")
-	assert.EqualValues(t, contentArray[1].TimeCome.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
-	assert.EqualValues(t, contentArray[1].TimeGone.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeCome.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:41")
+	assert.EqualValues(t, contentArray[1].TimeGone.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
 func BenchmarkPerformanceOfData(b *testing.B) {
@@ -35,30 +37,31 @@ func BenchmarkPerformanceOfData(b *testing.B) {
 	}
 }
 
-func TestStartAnalyticalToolDiaglog(t *testing.T){
-	filePath := "../../" + buildFileLogPath(time.Now().Format(DATEFORMAT))
+func TestStartAnalyticalToolDiaglog(t *testing.T) {
+	filePath := "../../" + buildFileLogPath(time.Now().Format(config.DATEFORMAT))
 	_, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	checkErrorForTest(err)
 
-	datePtr := ""
-	operationPtr := ""
-	queryPtr := ""
-	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
+	date := ""
+	config.Date = &date
+	assert.False(t, startAnalyticalToolDialog())
 
-	datePtr = "../../"+time.Now().Format(DATEFORMAT)
-	operationPtr = "Visitor"
-	queryPtr = "abcdefghijklmnopqrstuvwxyz"
-	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
+	date = "../../" + time.Now().Format(config.DATEFORMAT)
+	operation := "Visitor"
+	config.Operation = &operation
+	query := "abcdefghijklmnopqrstuvwxyz"
+	config.Query = &query
+	assert.False(t, startAnalyticalToolDialog())
 }
 
-func TestAnalyseLocationsByVisitor(t *testing.T){
+func TestAnalyseLocationsByVisitor(t *testing.T) {
 	creds := make([]journal.Credentials, 0)
 	visitor := "Gustav Gans"
 	res := analyseLocationsByVisitor(visitor, &creds)
 	assert.EqualValues(t, 0, len(*res))
 
-	var searchedCred = journal.Credentials {
-		Name: "Gustav Gans",
+	var searchedCred = journal.Credentials{
+		Name:     "Gustav Gans",
 		Location: "Entenhausen",
 	}
 
@@ -67,8 +70,8 @@ func TestAnalyseLocationsByVisitor(t *testing.T){
 	assert.EqualValues(t, 1, len(*res))
 	assert.EqualValues(t, "Entenhausen", (*res)[0])
 
-	var notSearchedCred = journal.Credentials {
-		Name: "Donald Duck",
+	var notSearchedCred = journal.Credentials{
+		Name:     "Donald Duck",
 		Location: "Entenhausen",
 	}
 
@@ -78,14 +81,14 @@ func TestAnalyseLocationsByVisitor(t *testing.T){
 	assert.EqualValues(t, "Entenhausen", (*res)[0])
 }
 
-func TestAnalyseVisitorsByLocation(t *testing.T){
+func TestAnalyseVisitorsByLocation(t *testing.T) {
 	creds := make([]journal.Credentials, 0)
 	location := "Entenhausen"
 	res := analyseVisitorsByLocation(location, &creds)
 	assert.EqualValues(t, 0, len(*res))
 
-	var searchedCred = journal.Credentials {
-		Name: "Gustav Gans",
+	var searchedCred = journal.Credentials{
+		Name:     "Gustav Gans",
 		Location: "Entenhausen",
 	}
 
@@ -94,8 +97,8 @@ func TestAnalyseVisitorsByLocation(t *testing.T){
 	assert.EqualValues(t, 1, len(*res))
 	assert.EqualValues(t, "Gustav Gans", (*res)[0])
 
-	var notSearchedCred = journal.Credentials {
-		Name: "Bambis Mutter",
+	var notSearchedCred = journal.Credentials{
+		Name:     "Bambis Mutter",
 		Location: "Friedhof",
 	}
 
@@ -104,4 +107,3 @@ func TestAnalyseVisitorsByLocation(t *testing.T){
 	assert.EqualValues(t, 1, len(*res))
 	assert.EqualValues(t, "Gustav Gans", (*res)[0])
 }
-

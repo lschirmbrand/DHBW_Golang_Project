@@ -1,10 +1,12 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -37,9 +39,9 @@ func exportToCSVFile(results *[]string, selector string, operation Operation, fi
 }
 
 func buildFileLogPath(date string) string {
-	return PATHTOLOGS + date + ".txt"
+	return path.Join(*config.LogPath, "log-"+date+".txt")
 }
 
 func buildFileCSVPath(operation Operation, selector string) string {
-	return PATHTOCSV + string(operation)+"_"+selector+".csv"
+	return path.Join(*config.LogPath, "export-"+string(operation)+"_"+selector+".csv")
 }

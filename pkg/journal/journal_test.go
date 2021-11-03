@@ -1,6 +1,7 @@
 package journal
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"flag"
 	"log"
 	"os"
@@ -34,7 +35,6 @@ func TestLogToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestLogInToJournal(t *testing.T) {
@@ -61,7 +61,6 @@ func TestLogInToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestLogOutToJournal(t *testing.T) {
@@ -87,7 +86,6 @@ func TestLogOutToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestReturnCreditsToString(t *testing.T) {
@@ -118,7 +116,7 @@ func TestLogTestExample(t *testing.T) {
 
 func modifyFlagsForTestCase(filePath bool, fileName bool) {
 	if filePath {
-		*LogPath = "../../" + PATHTOLOGS
+		*config.LogPath = "../../logs"
 	}
 	if fileName {
 		*LogFilename = "testcase"
@@ -126,10 +124,4 @@ func modifyFlagsForTestCase(filePath bool, fileName bool) {
 	if filePath || fileName {
 		flag.Parse()
 	}
-}
-
-func resetFlags() {
-	*LogPath = PATHTOLOGS
-	*LogFilename = time.Now().Format(DATEFORMAT)
-	flag.Parse()
 }

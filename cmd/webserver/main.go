@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	config.Configure()
+	config.ConfigureWeb()
 
 	finished := make(chan bool)
 	// run web server for checkin/checkout
