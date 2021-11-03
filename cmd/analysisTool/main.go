@@ -164,3 +164,7 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 
 	return results, done
 }
+
+func isOverlapping(startA time.Time, startB time.Time, endA time.Time, endB time.Time) bool {
+	return startA.Before(endB) && endA.After(startB)
+}
