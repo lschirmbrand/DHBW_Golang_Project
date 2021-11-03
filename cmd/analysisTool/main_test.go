@@ -2,11 +2,12 @@ package main
 
 import (
 	"DHBW_Golang_Project/pkg/journal"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContentToArray(t *testing.T) {
@@ -35,7 +36,7 @@ func BenchmarkPerformanceOfData(b *testing.B) {
 	}
 }
 
-func TestStartAnalyticalToolDiaglog(t *testing.T){
+func TestStartAnalyticalToolDiaglog(t *testing.T) {
 	filePath := "../../" + buildFileLogPath(time.Now().Format(DATEFORMAT))
 	_, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	checkErrorForTest(err)
@@ -45,20 +46,20 @@ func TestStartAnalyticalToolDiaglog(t *testing.T){
 	queryPtr := ""
 	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
 
-	datePtr = "../../"+time.Now().Format(DATEFORMAT)
+	datePtr = "../../" + time.Now().Format(DATEFORMAT)
 	operationPtr = "Visitor"
 	queryPtr = "abcdefghijklmnopqrstuvwxyz"
 	assert.False(t, startAnalyticalToolDialog(&datePtr, &operationPtr, &queryPtr))
 }
 
-func TestAnalyseLocationsByVisitor(t *testing.T){
+func TestAnalyseLocationsByVisitor(t *testing.T) {
 	creds := make([]journal.Credentials, 0)
 	visitor := "Gustav Gans"
 	res := analyseLocationsByVisitor(visitor, &creds)
 	assert.EqualValues(t, 0, len(*res))
 
-	var searchedCred = journal.Credentials {
-		Name: "Gustav Gans",
+	var searchedCred = journal.Credentials{
+		Name:     "Gustav Gans",
 		Location: "Entenhausen",
 	}
 
@@ -67,8 +68,8 @@ func TestAnalyseLocationsByVisitor(t *testing.T){
 	assert.EqualValues(t, 1, len(*res))
 	assert.EqualValues(t, "Entenhausen", (*res)[0])
 
-	var notSearchedCred = journal.Credentials {
-		Name: "Donald Duck",
+	var notSearchedCred = journal.Credentials{
+		Name:     "Donald Duck",
 		Location: "Entenhausen",
 	}
 
@@ -78,14 +79,14 @@ func TestAnalyseLocationsByVisitor(t *testing.T){
 	assert.EqualValues(t, "Entenhausen", (*res)[0])
 }
 
-func TestAnalyseVisitorsByLocation(t *testing.T){
+func TestAnalyseVisitorsByLocation(t *testing.T) {
 	creds := make([]journal.Credentials, 0)
 	location := "Entenhausen"
 	res := analyseVisitorsByLocation(location, &creds)
 	assert.EqualValues(t, 0, len(*res))
 
-	var searchedCred = journal.Credentials {
-		Name: "Gustav Gans",
+	var searchedCred = journal.Credentials{
+		Name:     "Gustav Gans",
 		Location: "Entenhausen",
 	}
 
@@ -94,8 +95,8 @@ func TestAnalyseVisitorsByLocation(t *testing.T){
 	assert.EqualValues(t, 1, len(*res))
 	assert.EqualValues(t, "Gustav Gans", (*res)[0])
 
-	var notSearchedCred = journal.Credentials {
-		Name: "Bambis Mutter",
+	var notSearchedCred = journal.Credentials{
+		Name:     "Bambis Mutter",
 		Location: "Friedhof",
 	}
 
@@ -105,3 +106,12 @@ func TestAnalyseVisitorsByLocation(t *testing.T){
 	assert.EqualValues(t, "Gustav Gans", (*res)[0])
 }
 
+func TestIsOverlapping(t *testing.T) {
+	startA := time.Date(2021, time.January, 20, 20, 0, 0, 0, time.Local)
+	endA := time.Date(2021, time.January, 20, 23, 59, 0, 0, time.Local)
+	startB := time.Date(2021, time.January, 20, 19, 0, 0, 0, time.Local)
+	endB := time.Date(2021, time.January, 20, 22, 30, 0, 0, time.Local)
+
+	assert.True(t, isOverlapping(startA, startB, endA, endB))
+	assert.False(t, isOverlapping(startB, endB, startA, endA))
+}
