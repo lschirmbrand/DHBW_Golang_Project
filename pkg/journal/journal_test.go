@@ -107,7 +107,9 @@ func TestLogTestExample(t *testing.T) {
 		Timestamp: time.Now(),
 	}
 	for i := 0; i < 250; i++ {
+		cred.Login = true
 		LogInToJournal(&cred)
+		cred.Login = false
 		LogOutToJournal(&cred)
 	}
 }

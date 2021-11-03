@@ -74,7 +74,7 @@ func logToJournal(cred *Credentials) bool {
 }
 
 func returnFilepath() string {
-	return *LogPath + "/logs-" + *LogFilename + ".txt"
+	return *LogPath + "/log-" + *LogFilename + ".txt"
 }
 
 func buildCredits(credits *Credentials) string {

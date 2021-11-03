@@ -37,6 +37,7 @@ type contact struct {
 const (
 	LOCATION           Operation = "Location"
 	VISITOR            Operation = "Visitor"
+	CONTACT            Operation = "Contact"
 	PATHTOLOGS                   = "logs/log-"
 	PATHTOCSV                    = "logs/export-"
 	DATEFORMAT                   = "2006-01-02"
@@ -51,7 +52,7 @@ func main() {
 
 	args := flag.Args()
 	if !requestedHelp(&args) {
-		startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
+		startAnalyticalTool(datePtr, operationPtr, queryPtr)
 	} else {
 		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION> -query=<QUERYKEYWORD>")
 		fmt.Println("Standardvalue for:")
@@ -61,7 +62,7 @@ func main() {
 	}
 }
 
-func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *string) bool {
+func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string) bool {
 	var selectedOperation Operation
 	if ok, fails := checkFlagFunctionality(datePtr, operationPtr, &selectedOperation, queryPtr); !ok {
 		for i := range *fails {
@@ -70,18 +71,32 @@ func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *
 		}
 	} else {
 		fileContent := readDataFromFile(buildFileLogPath(*datePtr))
-		loggedCredits := contentToCredits(fileContent)
-		var qryResults *[]string
-		if strings.EqualFold(*operationPtr, string(VISITOR)) {
-			qryResults = analyseLocationsByVisitor(*queryPtr, loggedCredits)
-		} else {
-			qryResults = analyseVisitorsByLocation(*queryPtr, loggedCredits)
-		}
+		sessions := credentialsToSession(contentToCredits(fileContent))
+		if strings.EqualFold(*operationPtr, string(CONTACT)) {
+			contacts := make([]contact, 0)
+			for _, entry := range *sessions {
+				if strings.EqualFold(entry.Name, *queryPtr) {
+					newContacts := getOverlaps(&entry, sessions)
+					contacts = append(contacts, *newContacts...)
+				}
 
-		if assertQueryExport(qryResults) {
-			filePath := buildFileCSVPath(selectedOperation, *queryPtr)
-			exportToCSVFile(qryResults, *queryPtr, selectedOperation, filePath)
-			return true
+			}
+
+			fmt.Println(contacts)
+
+		} else {
+			var qryResults *[]string
+			if strings.EqualFold(*operationPtr, string(VISITOR)) {
+				qryResults = analyseLocationsByVisitor(*queryPtr, sessions)
+			} else {
+				qryResults = analyseVisitorsByLocation(*queryPtr, sessions)
+			}
+
+			if assertQueryExport(qryResults) {
+				filePath := buildFileCSVPath(selectedOperation, *queryPtr)
+				exportToCSVFile(qryResults, *queryPtr, selectedOperation, filePath)
+				return true
+			}
 		}
 	}
 	return false
@@ -118,6 +133,7 @@ func credentialsToSession(creds *[]journal.Credentials) *[]session {
 			}
 		}
 	}
+	// fmt.Println(sessions)
 	return &sessions
 }
 
@@ -128,7 +144,7 @@ func check(e error) bool {
 	return true
 }
 
-func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials) *[]string {
+func analyseLocationsByVisitor(visitor string, data *[]session) *[]string {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(entry.Name, visitor) {
@@ -138,7 +154,7 @@ func analyseLocationsByVisitor(visitor string, data *[]journal.Credentials) *[]s
 	return &s
 }
 
-func analyseVisitorsByLocation(location string, data *[]journal.Credentials) *[]string {
+func analyseVisitorsByLocation(location string, data *[]session) *[]string {
 	s := make([]string, 0)
 	for _, entry := range *data {
 		if strings.EqualFold(string(entry.Location), location) {
@@ -173,7 +189,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
 	if len(cells) > 1 {
-		cred.Login = strings.EqualFold(trimStringBasedOnOS(strings.ToLower(cells[0]), false), "login")
+		cred.Login = strings.EqualFold(trimStringBasedOnOS(strings.ToLower(cells[0]), false), "checkin")
 		cred.Name = cells[1]
 		cred.Address = cells[2]
 		cred.Location = location.Location(strings.ToLower(cells[3]))
@@ -218,7 +234,7 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 }
 
 func isOverlapping(entry_1 *session, entry_2 *session) bool {
-	return (entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) && strings.EqualFold(entry_1.Name, entry_2.Name) && strings.EqualFold(entry_1.Address, entry_2.Address)
+	return (entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) && strings.EqualFold(entry_1.Name, entry_2.Name)
 }
 
 func calculateOverlap(entry_1 *session, entry_2 *session) time.Duration {
