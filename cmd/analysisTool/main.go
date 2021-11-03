@@ -21,6 +21,19 @@ type result struct {
 	cred journal.Credentials
 }
 
+type session struct {
+	Name     string
+	Address  string
+	Location location.Location
+	TimeCome time.Time
+	TimeGone time.Time
+}
+
+type contact struct {
+	cred     session
+	duration time.Duration
+}
+
 const (
 	LOCATION           Operation = "Location"
 	VISITOR            Operation = "Visitor"
@@ -72,6 +85,40 @@ func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *
 		}
 	}
 	return false
+}
+
+func credentialsToSession(creds *[]journal.Credentials) *[]session {
+	sessions := make([]session, 0)
+	for _, e := range *creds {
+		if e.Login {
+			found := false
+			for _, eout := range *creds {
+				if !eout.Login {
+					if e.Name == eout.Name && e.Address == eout.Address && e.Location == eout.Location {
+						sessions = append(sessions, session{
+							e.Name,
+							e.Address,
+							e.Location,
+							e.Timestamp,
+							eout.Timestamp,
+						})
+						found = true
+						break
+					}
+				}
+			}
+			if !found {
+				sessions = append(sessions, session{
+					e.Name,
+					e.Address,
+					e.Location,
+					e.Timestamp,
+					time.Now(),
+				})
+			}
+		}
+	}
+	return &sessions
 }
 
 func check(e error) bool {
@@ -131,9 +178,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 		cred.Address = cells[2]
 		cred.Location = location.Location(strings.ToLower(cells[3]))
 		var err error
-		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[4])
-		check(err)
-		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[5])
+		cred.Timestamp, err = time.Parse(DATEFORMATWITHTIME, cells[4])
 		check(err)
 	}
 	return cred
@@ -172,6 +217,44 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 	return results, done
 }
 
-func isOverlapping(startA time.Time, startB time.Time, endA time.Time, endB time.Time) bool {
-	return startA.Before(endB) && endA.After(startB)
+func isOverlapping(entry_1 *session, entry_2 *session) bool {
+	return (entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) && strings.EqualFold(entry_1.Name, entry_2.Name) && strings.EqualFold(entry_1.Address, entry_2.Address)
+}
+
+func calculateOverlap(entry_1 *session, entry_2 *session) time.Duration {
+	var start time.Time
+	var end time.Time
+
+	// Set starttime of contact
+	if entry_1.TimeCome.After(entry_2.TimeCome) {
+		start = entry_2.TimeCome
+	} else {
+		start = entry_1.TimeCome
+	}
+
+	// Set endtime of contact
+	if entry_1.TimeGone.After(entry_2.TimeGone) {
+		start = entry_2.TimeGone
+	} else {
+		start = entry_1.TimeGone
+	}
+
+	return end.Sub(start)
+}
+
+func getOverlaps(queryEntry *session, entries *[]session) *[]contact {
+	contacts := make([]contact, 0)
+
+	for _, entry := range *entries {
+		if !isOverlapping(queryEntry, &entry) {
+			continue
+		}
+		newContact := entry
+		contacts = append(contacts, contact{
+			newContact,
+			calculateOverlap(&newContact, queryEntry),
+		})
+	}
+
+	return &contacts
 }

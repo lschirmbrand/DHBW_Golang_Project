@@ -12,12 +12,11 @@ import (
 
 func TestLogToJournal(t *testing.T) {
 	var cred = Credentials{
-		Login:    true,
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Login:     true,
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
+		Timestamp: time.Now(),
 	}
 
 	modifyFlagsForTestCase(true, true)
@@ -33,17 +32,16 @@ func TestLogToJournal(t *testing.T) {
 		}
 	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 	resetFlags()
 }
 
 func TestLogInToJournal(t *testing.T) {
 	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
+		Timestamp: time.Now(),
 	}
 
 	modifyFlagsForTestCase(true, true)
@@ -60,17 +58,16 @@ func TestLogInToJournal(t *testing.T) {
 		}
 	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 	resetFlags()
 }
 
 func TestLogOutToJournal(t *testing.T) {
 	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
+		Timestamp: time.Now(),
 	}
 	modifyFlagsForTestCase(true, true)
 
@@ -86,33 +83,32 @@ func TestLogOutToJournal(t *testing.T) {
 		}
 	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 	resetFlags()
 }
 
 func TestReturnCreditsToString(t *testing.T) {
 	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
+		Timestamp: time.Now(),
 	}
-	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestLogTestExample(t *testing.T) {
 	modifyFlagsForTestCase(true, false)
 	var cred = Credentials{
-		Login:    true,
-		Name:     "Name",
-		Address:  "Address",
-		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Login:     true,
+		Name:      "Name",
+		Address:   "Address",
+		Location:  "Location",
+		Timestamp: time.Now(),
 	}
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 250; i++ {
 		LogInToJournal(&cred)
+		LogOutToJournal(&cred)
 	}
 }
 
