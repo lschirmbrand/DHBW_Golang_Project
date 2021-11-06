@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <locations>
-    <location>Germany</location>
-    <location>Italy</location>
-    <location>Austria</location>
+    <location>Gebäude A</location>
+    <location>Gebäude B</location>
+    <location>Gebäude C</location>
 </locations>
