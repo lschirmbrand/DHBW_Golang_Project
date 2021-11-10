@@ -22,6 +22,8 @@ func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
 		switch strings.ToLower(*config.Operation) {
 		case strings.ToLower(string(VISITOR)):
 			*selectedOperation = VISITOR
+		case strings.ToLower(string(CONTACT)):
+			*selectedOperation = CONTACT
 		default:
 			*selectedOperation = LOCATION
 		}

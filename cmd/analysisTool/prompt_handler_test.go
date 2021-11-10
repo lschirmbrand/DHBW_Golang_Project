@@ -25,20 +25,6 @@ func TestTrimStringBasedOnOS(t *testing.T) {
 	assert.EqualValues(t, res, "teststring")
 }
 
-func TestRequestHelp(t *testing.T) {
-	args := make([]string, 0)
-	assert.False(t, requestedHelp(&args))
-
-	args = append(args, "-something")
-	assert.False(t, requestedHelp(&args))
-
-	args = append(args, "-help")
-	assert.True(t, requestedHelp(&args))
-
-	args = append(args, "-something")
-	assert.True(t, requestedHelp(&args))
-}
-
 func checkErrorForTest(err error) {
 	if err != nil {
 		log.Fatalln(err)
