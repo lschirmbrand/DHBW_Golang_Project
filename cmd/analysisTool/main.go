@@ -50,16 +50,8 @@ func main() {
 	queryPtr := flag.String("query", "", "The keyword of the requested query.")
 	flag.Parse()
 
-	args := flag.Args()
-	if !requestedHelp(&args) {
-		startAnalyticalTool(datePtr, operationPtr, queryPtr)
-	} else {
-		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION|CONTACT> -query=<QUERYKEYWORD>")
-		fmt.Println("Standardvalue for:")
-		fmt.Println("Date:\tDate today")
-		fmt.Println("Operation:\tVisitor")
-		fmt.Println("Query:\t<none>")
-	}
+	startAnalyticalTool(datePtr, operationPtr, queryPtr)
+
 }
 
 func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string) bool {
@@ -72,7 +64,6 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 	} else {
 		fileContent := readDataFromFile(buildFileLogPath(*datePtr))
 		sessions := credentialsToSession(contentToCredits(fileContent))
-		selectedOperation = CONTACT
 		if strings.EqualFold(*operationPtr, string(CONTACT)) {
 			contacts := make([]contact, 0)
 			for _, entry := range *sessions {
@@ -80,11 +71,13 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 					newContacts := getOverlaps(&entry, sessions)
 					contacts = append(contacts, *newContacts...)
 				}
-
 			}
 
-			filePath := buildFileCSVPath(selectedOperation, *queryPtr)
-			writeContactsToCSV(&contacts, filePath)
+			if exportHandler(len(contacts)) {
+				filePath := buildFileCSVPath(selectedOperation, *queryPtr)
+				csvHeader := createCSVHeader(*queryPtr, selectedOperation)
+				writeContactsToCSV(&contacts, csvHeader, filePath)
+			}
 
 		} else {
 			var qryResults *[]string
@@ -96,7 +89,8 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 
 			if assertQueryExport(qryResults) {
 				filePath := buildFileCSVPath(selectedOperation, *queryPtr)
-				writeSessionsToCSV(qryResults, *queryPtr, selectedOperation, filePath)
+				csvHeader := createCSVHeader(*queryPtr, selectedOperation)
+				writeSessionsToCSV(qryResults, filePath, csvHeader)
 				return true
 			}
 		}

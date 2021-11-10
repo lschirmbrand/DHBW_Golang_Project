@@ -108,7 +108,7 @@ func TestLogTestExample(t *testing.T) {
 		Timestamp: time.Now(),
 	}
 	name := cred.Name
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 3; i++ {
 		cred.Login = true
 		cred.Name = name + strconv.Itoa(i)
 		LogInToJournal(&cred)

@@ -18,25 +18,21 @@ func readDataFromFile(filePath string) *[]string {
 	return &out
 }
 
-func writeSessionsToCSV(results *[]string, selector string, operation Operation, filePath string) {
+func writeSessionsToCSV(results *[]string, filePath string, csvHeader *[]string) {
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()
 
-	csvHeader := make([]string, 1)
-	csvHeader[0] = "Results for: " + selector
-
-	w := csv.NewWriter(f)
-	e = w.Write(csvHeader)
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+	e = writer.Write(*csvHeader)
 	check(e)
-	e = w.Write(*(results))
-	w.Flush()
+	e = writer.Write(*results)
 	check(e)
-
 	fmt.Println("The query-result was exported to: " + filePath)
 }
 
-func writeContactsToCSV(contacts *[]contact, filePath string) {
+func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath string) {
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()
@@ -44,6 +40,8 @@ func writeContactsToCSV(contacts *[]contact, filePath string) {
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
 
+	e = writer.Write(*csvHeader)
+	check(e)
 	for _, contact := range *contacts {
 		row := contact.toSlice()
 		if err := writer.Write(*row); err != nil {
@@ -53,6 +51,21 @@ func writeContactsToCSV(contacts *[]contact, filePath string) {
 
 	}
 	fmt.Println("The query-result was exported to: " + filePath)
+}
+
+func createCSVHeader(selector string, operation Operation) *[]string {
+	var infix string
+	switch operation {
+	case LOCATION:
+		fallthrough
+	case VISITOR:
+		infix = "Results of for the query: " + string(operation) + " = "
+	case CONTACT:
+		infix = string(operation) + " for the user: "
+	}
+	csvHeader := make([]string, 1)
+	csvHeader[0] = infix + selector
+	return &csvHeader
 }
 
 func buildFileLogPath(date string) string {

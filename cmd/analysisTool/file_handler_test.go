@@ -43,11 +43,12 @@ func TestExportToCSVFile(t *testing.T) {
 		"location1", "location2", "location3", "location4", "location5",
 	}
 	selector := "TestSelector"
-	operation := Operation("TestOperation")
+	operation := VISITOR
 
 	// Tests use path relative from own path
 	filePath := "../../" + buildFileCSVPath(operation, selector)
-	writeSessionsToCSV(&results, selector, operation, filePath)
+	csvHeader := createCSVHeader(selector, operation)
+	writeSessionsToCSV(&results, filePath, csvHeader)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
 
