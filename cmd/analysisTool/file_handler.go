@@ -18,7 +18,7 @@ func readDataFromFile(filePath string) *[]string {
 	return &out
 }
 
-func exportToCSVFile(results *[]string, selector string, operation Operation, filePath string) {
+func writeSessionsToCSV(results *[]string, selector string, operation Operation, filePath string) {
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()
@@ -36,10 +36,37 @@ func exportToCSVFile(results *[]string, selector string, operation Operation, fi
 	fmt.Println("The query-result was exported to: " + filePath)
 }
 
+func writeContactsToCSV(contacts *[]contact, filePath string) {
+	f, e := os.Create(filePath)
+	check(e)
+	defer f.Close()
+
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+
+	for _, contact := range *contacts {
+		row := contact.toSlice()
+		if err := writer.Write(*row); err != nil {
+			fmt.Println("Failed to write, aborting!")
+			return
+		}
+
+	}
+	fmt.Println("The query-result was exported to: " + filePath)
+}
+
 func buildFileLogPath(date string) string {
 	return PATHTOLOGS + date + ".txt"
 }
 
 func buildFileCSVPath(operation Operation, selector string) string {
-	return PATHTOCSV + string(operation)+"_"+selector+".csv"
+	return PATHTOCSV + string(operation) + "_" + selector + ".csv"
+}
+
+func (contact *contact) toSlice() *[]string {
+	field := make([]string, 3)
+	field[0] = contact.session.Name
+	field[1] = string(contact.session.Location)
+	field[2] = contact.duration.String()
+	return &field
 }

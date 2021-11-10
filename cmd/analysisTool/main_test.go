@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/location"
 	"os"
 	"strings"
 	"testing"
@@ -105,11 +106,31 @@ func TestAnalyseVisitorsByLocation(t *testing.T) {
 }
 
 func TestIsOverlapping(t *testing.T) {
-	// startA := time.Date(2021, time.January, 20, 20, 0, 0, 0, time.Local)
-	// endA := time.Date(2021, time.January, 20, 23, 59, 0, 0, time.Local)
-	// startB := time.Date(2021, time.January, 20, 19, 0, 0, 0, time.Local)
-	// endB := time.Date(2021, time.January, 20, 22, 30, 0, 0, time.Local)
+	startA := time.Date(2021, time.January, 20, 20, 0, 0, 0, time.Local)
+	endA := time.Date(2021, time.January, 20, 23, 0, 0, 0, time.Local)
+	startB := time.Date(2021, time.January, 20, 19, 0, 0, 0, time.Local)
+	endB := time.Date(2021, time.January, 20, 22, 30, 0, 0, time.Local)
+	nameA := "Name"
+	nameB := "AuchName"
+	locationA := "Location"
+	locationB := "Location"
 
-	// assert.True(t, isOverlapping(startA, startB, endA, endB))
+	var sessionA = session{
+		Name:     nameA,
+		Address:  "",
+		Location: location.Location(locationA),
+		TimeCome: startA,
+		TimeGone: endA,
+	}
+
+	var sessionB = session{
+		Name:     nameB,
+		Address:  "",
+		Location: location.Location(locationB),
+		TimeCome: startB,
+		TimeGone: endB,
+	}
+
+	assert.True(t, isOverlapping(&sessionA, &sessionB))
 	// assert.False(t, isOverlapping(startB, endB, startA, endA))
 }

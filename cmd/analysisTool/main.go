@@ -30,7 +30,7 @@ type session struct {
 }
 
 type contact struct {
-	cred     session
+	session  session
 	duration time.Duration
 }
 
@@ -38,8 +38,8 @@ const (
 	LOCATION           Operation = "Location"
 	VISITOR            Operation = "Visitor"
 	CONTACT            Operation = "Contact"
-	PATHTOLOGS                   = "logs/log-"
-	PATHTOCSV                    = "logs/export-"
+	PATHTOLOGS                   = "logs/log_"
+	PATHTOCSV                    = "logs/export_"
 	DATEFORMAT                   = "2006-01-02"
 	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
 )
@@ -54,7 +54,7 @@ func main() {
 	if !requestedHelp(&args) {
 		startAnalyticalTool(datePtr, operationPtr, queryPtr)
 	} else {
-		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION> -query=<QUERYKEYWORD>")
+		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION|CONTACT> -query=<QUERYKEYWORD>")
 		fmt.Println("Standardvalue for:")
 		fmt.Println("Date:\tDate today")
 		fmt.Println("Operation:\tVisitor")
@@ -72,6 +72,7 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 	} else {
 		fileContent := readDataFromFile(buildFileLogPath(*datePtr))
 		sessions := credentialsToSession(contentToCredits(fileContent))
+		selectedOperation = CONTACT
 		if strings.EqualFold(*operationPtr, string(CONTACT)) {
 			contacts := make([]contact, 0)
 			for _, entry := range *sessions {
@@ -82,7 +83,8 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 
 			}
 
-			fmt.Println(contacts)
+			filePath := buildFileCSVPath(selectedOperation, *queryPtr)
+			writeContactsToCSV(&contacts, filePath)
 
 		} else {
 			var qryResults *[]string
@@ -94,7 +96,7 @@ func startAnalyticalTool(datePtr *string, operationPtr *string, queryPtr *string
 
 			if assertQueryExport(qryResults) {
 				filePath := buildFileCSVPath(selectedOperation, *queryPtr)
-				exportToCSVFile(qryResults, *queryPtr, selectedOperation, filePath)
+				writeSessionsToCSV(qryResults, *queryPtr, selectedOperation, filePath)
 				return true
 			}
 		}
@@ -133,7 +135,6 @@ func credentialsToSession(creds *[]journal.Credentials) *[]session {
 			}
 		}
 	}
-	// fmt.Println(sessions)
 	return &sessions
 }
 
@@ -234,7 +235,7 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 }
 
 func isOverlapping(entry_1 *session, entry_2 *session) bool {
-	return (entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) && strings.EqualFold(entry_1.Name, entry_2.Name)
+	return ((entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) || entry_1.TimeCome.Equal(entry_2.TimeCome)) && strings.EqualFold(string(entry_1.Location), string(entry_2.Location)) && !(strings.EqualFold(string(entry_1.Name), string(entry_2.Name)))
 }
 
 func calculateOverlap(entry_1 *session, entry_2 *session) time.Duration {
@@ -250,11 +251,10 @@ func calculateOverlap(entry_1 *session, entry_2 *session) time.Duration {
 
 	// Set endtime of contact
 	if entry_1.TimeGone.After(entry_2.TimeGone) {
-		start = entry_2.TimeGone
+		end = entry_2.TimeGone
 	} else {
-		start = entry_1.TimeGone
+		end = entry_1.TimeGone
 	}
-
 	return end.Sub(start)
 }
 
@@ -271,6 +271,5 @@ func getOverlaps(queryEntry *session, entries *[]session) *[]contact {
 			calculateOverlap(&newContact, queryEntry),
 		})
 	}
-
 	return &contacts
 }

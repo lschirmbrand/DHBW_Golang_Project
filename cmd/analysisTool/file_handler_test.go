@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/csv"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadDataFromFile(t *testing.T) {
@@ -46,7 +47,7 @@ func TestExportToCSVFile(t *testing.T) {
 
 	// Tests use path relative from own path
 	filePath := "../../" + buildFileCSVPath(operation, selector)
-	exportToCSVFile(&results, selector, operation, filePath)
+	writeSessionsToCSV(&results, selector, operation, filePath)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
 

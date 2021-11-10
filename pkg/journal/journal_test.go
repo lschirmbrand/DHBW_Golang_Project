@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -106,8 +107,10 @@ func TestLogTestExample(t *testing.T) {
 		Location:  "Location",
 		Timestamp: time.Now(),
 	}
-	for i := 0; i < 250; i++ {
+	name := cred.Name
+	for i := 0; i < 50; i++ {
 		cred.Login = true
+		cred.Name = name + strconv.Itoa(i)
 		LogInToJournal(&cred)
 		cred.Login = false
 		LogOutToJournal(&cred)
