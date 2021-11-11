@@ -33,7 +33,7 @@ func TestReadDataFromFile(t *testing.T) {
 		}
 	}(f)
 
-	out := *readDataFromFile(filePath)
+	out := *readFile(filePath)
 	for i := 0; i < len(out)-1; i++ {
 		assert.EqualValues(t, expected[i], out[i])
 	}
@@ -49,7 +49,7 @@ func TestExportToCSVFile(t *testing.T) {
 
 	// Tests use path relative from own path
 	filePath := "../../" + buildFileCSVPath(operation, selector)
-	csvHeader := createCSVHeader(selector, operation)
+	csvHeader := createCSVHeader(operation, selector)
 	writeSessionsToCSV(&results, filePath, csvHeader)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
