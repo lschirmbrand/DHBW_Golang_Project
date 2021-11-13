@@ -62,18 +62,22 @@ func TestSavePersonToCookies(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	p := Person{
-		Name:   "Max Mustermann",
-		Street: "Teststr. 5",
-		PLZ:    "12345",
-		City:   "Musterstadt",
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Teststr. 5",
+		PLZ:       "12345",
+		City:      "Musterstadt",
 	}
 
 	savePersonToCookies(recorder, &p)
 
 	cookies := recorder.Result().Cookies()
 
-	nameCookie := cookies[0]
-	assert.Equal(t, p.Name, decodeFromBase64(nameCookie.Value))
+	firstNameCookie := cookies[0]
+	assert.Equal(t, p.Firstname, decodeFromBase64(firstNameCookie.Value))
+
+	lastNameCookie := cookies[0]
+	assert.Equal(t, p.Lastname, decodeFromBase64(lastNameCookie.Value))
 
 	streetCookie := cookies[1]
 	assert.Equal(t, p.Street, decodeFromBase64(streetCookie.Value))
@@ -91,35 +95,39 @@ func TestReadPersonFromCookies(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://localhost", nil)
 
 	p := Person{
-		Name:   "Max Mustermann",
-		Street: "Teststr. 5",
-		PLZ:    "12345",
-		City:   "Musterstadt",
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Teststr. 5",
+		PLZ:       "12345",
+		City:      "Musterstadt",
 	}
 
-	nameCookie := http.Cookie{
-		Name:  string(nameKey),
-		Value: encodeToBase64(p.Name),
+	firstNameCookie := http.Cookie{
+		Name:  firstNameKey,
+		Value: encodeToBase64(p.Firstname),
+	}
+	lastNameCookie := http.Cookie{
+		Name:  lastNameKey,
+		Value: encodeToBase64(p.Lastname),
 	}
 	streetCookie := http.Cookie{
-		Name:  string(streetKey),
+		Name:  streetKey,
 		Value: encodeToBase64(p.Street),
 	}
 	plzCookie := http.Cookie{
-		Name:  string(plzKey),
+		Name:  plzKey,
 		Value: encodeToBase64(p.PLZ),
 	}
 	cityCookie := http.Cookie{
-		Name:  string(cityKey),
+		Name:  cityKey,
 		Value: encodeToBase64(p.City),
 	}
 
-	req.AddCookie(&nameCookie)
+	req.AddCookie(&firstNameCookie)
+	req.AddCookie(&lastNameCookie)
 	req.AddCookie(&streetCookie)
 	req.AddCookie(&plzCookie)
 	req.AddCookie(&cityCookie)
-
-	fmt.Println(nameCookie)
 
 	p1 := readPersonFromCookies(req)
 
@@ -194,4 +202,8 @@ func TestCheckedOutHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(body), "Max Mustermann")
 	assert.Contains(t, string(body), "TestLocation")
+}
+
+func TestValidateFormInput(t *testing.T) {
+
 }
