@@ -14,12 +14,13 @@
 <body>
     <div class="container">
 
-        <h1>Hi {{.Name}}</h1>
+        <h1>Hi {{.Firstname}} {{.Lastname}}</h1>
 
         <p>Du bist erfolgreich bei {{.Location}} seit <span id="timer">00:00:00</span> eingecheckt.</p>
 
         <form method="post" action="checkedout">
-            <input name="name" value="{{.Name}}" hidden>
+            <input name="firstName" value="{{.Firstname}}" hidden>
+            <input name="lastName" value="{{.Lastname}}" hidden>
             <input name="street" value="{{.Street}}" hidden>
             <input name="plz" value="{{.PLZ}}" hidden>
             <input name="city" value="{{.City}}" hidden>

@@ -17,9 +17,16 @@
         <h1>Check-in to {{.Location}}</h1>
 
         <form method="post" action="checkedin">
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input name="name" type="text" id="name" class="form-control" value="{{.Name}}">
+
+            <div class="mb-3 row">
+                <div class="col">
+                    <label for="firstName" class="form-label">Vorname</label>
+                    <input name="firstName" type="text" id="firstName" class="form-control" value="{{.Firstname}}">
+                </div>
+                <div class="col">
+                    <label for="lastName" class="form-label">Nachname</label>
+                    <input name="lastName" type="text" id="lastName" class="form-control" value="{{.Lastname}}">
+                </div>
             </div>
 
             <div class="mb-3">
