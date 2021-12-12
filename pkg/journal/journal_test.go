@@ -1,7 +1,7 @@
 package journal
 
 import (
-	"flag"
+	"DHBW_Golang_Project/pkg/config"
 	"log"
 	"os"
 	"testing"
@@ -10,7 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	testLogPath string = "../../test-logs"
+)
+
 func TestLogToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Login:    true,
 		Address:  "Address",
@@ -19,8 +27,6 @@ func TestLogToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-
-	modifyFlagsForTestCase(true, true)
 
 	filePath := returnFilepath()
 	logToJournal(&cred)
@@ -34,10 +40,13 @@ func TestLogToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestLogInToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Address:  "Address",
 		Name:     "Name",
@@ -45,8 +54,6 @@ func TestLogInToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-
-	modifyFlagsForTestCase(true, true)
 
 	LogInToJournal(&cred)
 
@@ -61,10 +68,13 @@ func TestLogInToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestLogOutToJournal(t *testing.T) {
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Address:  "Address",
 		Name:     "Name",
@@ -72,7 +82,6 @@ func TestLogOutToJournal(t *testing.T) {
 		TimeCome: time.Now(),
 		TimeGone: time.Now(),
 	}
-	modifyFlagsForTestCase(true, true)
 
 	LogOutToJournal(&cred)
 
@@ -87,7 +96,6 @@ func TestLogOutToJournal(t *testing.T) {
 	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
-	resetFlags()
 }
 
 func TestReturnCreditsToString(t *testing.T) {
@@ -102,7 +110,10 @@ func TestReturnCreditsToString(t *testing.T) {
 }
 
 func TestLogTestExample(t *testing.T) {
-	modifyFlagsForTestCase(true, false)
+
+	configure()
+	defer cleanupTestLogs()
+
 	var cred = Credentials{
 		Login:    true,
 		Name:     "Name",
@@ -116,20 +127,11 @@ func TestLogTestExample(t *testing.T) {
 	}
 }
 
-func modifyFlagsForTestCase(filePath bool, fileName bool) {
-	if filePath {
-		*LogPath = "../../" + PATHTOLOGS
-	}
-	if fileName {
-		*LogFilename = "testcase"
-	}
-	if filePath || fileName {
-		flag.Parse()
-	}
+func configure() {
+
+	config.LogPath = &testLogPath
 }
 
-func resetFlags() {
-	*LogPath = PATHTOLOGS
-	*LogFilename = time.Now().Format(DATEFORMAT)
-	flag.Parse()
+func cleanupTestLogs() {
+	os.RemoveAll(testLogPath)
 }

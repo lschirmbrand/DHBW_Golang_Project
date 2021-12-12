@@ -12,7 +12,7 @@ import (
 )
 
 func TestQrHandler(t *testing.T) {
-	config.Configure()
+	config.ConfigureWeb()
 	parseTemplates("../../web/templates")
 	location.ReadLocations("../../assets/locations.xml")
 
@@ -29,7 +29,7 @@ func TestQrHandler(t *testing.T) {
 }
 
 func TestMux(t *testing.T) {
-	config.Configure()
+	config.ConfigureWeb()
 	// overwrite template dir path
 	templatePath := "../../web/templates"
 	config.TemplatePath = &templatePath

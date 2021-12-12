@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
 	"flag"
@@ -22,23 +23,15 @@ type result struct {
 }
 
 const (
-	LOCATION           Operation = "Location"
-	VISITOR            Operation = "Visitor"
-	PATHTOLOGS                   = "logs/log-"
-	PATHTOCSV                    = "logs/export-"
-	DATEFORMAT                   = "2006-01-02"
-	DATEFORMATWITHTIME           = "02-01-2006 15:04:05"
+	LOCATION Operation = "Location"
+	VISITOR  Operation = "Visitor"
 )
 
 func main() {
-	datePtr := flag.String("date", time.Now().Format(DATEFORMAT), "Date of the requested query. Format: YYYY-MM-DD")
-	operationPtr := flag.String("operation", string(VISITOR), "Operation of the requested query. Format: Visitor or Location")
-	queryPtr := flag.String("query", "", "The keyword of the requested query.")
-	flag.Parse()
 
 	args := flag.Args()
 	if !requestedHelp(&args) {
-		startAnalyticalToolDialog(datePtr, operationPtr, queryPtr)
+		startAnalyticalToolDialog()
 	} else {
 		fmt.Println("go test -date=<DATE> -operation=<VISITOR|LOCATION> -query=<QUERYKEYWORD>")
 		fmt.Println("Standardvalue for:")
@@ -48,26 +41,26 @@ func main() {
 	}
 }
 
-func startAnalyticalToolDialog(datePtr *string, operationPtr *string, queryPtr *string) bool {
+func startAnalyticalToolDialog() bool {
 	var selectedOperation Operation
-	if ok, fails := checkFlagFunctionality(datePtr, operationPtr, &selectedOperation, queryPtr); !ok {
+	if ok, fails := checkFlagFunctionality(&selectedOperation); !ok {
 		for i := range *fails {
 			fmt.Println((*fails)[i])
 			return false
 		}
 	} else {
-		fileContent := readDataFromFile(buildFileLogPath(*datePtr))
+		fileContent := readDataFromFile(buildFileLogPath(*config.Date))
 		loggedCredits := contentToCredits(fileContent)
 		var qryResults *[]string
-		if strings.EqualFold(*operationPtr, string(VISITOR)) {
-			qryResults = analyseLocationsByVisitor(*queryPtr, loggedCredits)
+		if strings.EqualFold(*config.Operation, string(VISITOR)) {
+			qryResults = analyseLocationsByVisitor(*config.Query, loggedCredits)
 		} else {
-			qryResults = analyseVisitorsByLocation(*queryPtr, loggedCredits)
+			qryResults = analyseVisitorsByLocation(*config.Query, loggedCredits)
 		}
 
 		if assertQueryExport(qryResults) {
-			filePath := buildFileCSVPath(selectedOperation, *queryPtr)
-			exportToCSVFile(qryResults, *queryPtr, selectedOperation, filePath)
+			filePath := buildFileCSVPath(selectedOperation, *config.Query)
+			exportToCSVFile(qryResults, *config.Query, selectedOperation, filePath)
 			return true
 		}
 	}
@@ -131,9 +124,9 @@ func splitDataRowToCells(row string) journal.Credentials {
 		cred.Address = cells[2]
 		cred.Location = location.Location(strings.ToLower(cells[3]))
 		var err error
-		cred.TimeCome, err = time.Parse(DATEFORMATWITHTIME, cells[4])
+		cred.TimeCome, err = time.Parse(config.DATEFORMATWITHTIME, cells[4])
 		check(err)
-		cred.TimeGone, err = time.Parse(DATEFORMATWITHTIME, cells[5])
+		cred.TimeGone, err = time.Parse(config.DATEFORMATWITHTIME, cells[5])
 		check(err)
 	}
 	return cred

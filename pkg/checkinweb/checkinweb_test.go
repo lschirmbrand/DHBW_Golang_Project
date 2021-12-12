@@ -57,7 +57,7 @@ func TestTokenValidationWrapperNotValid(t *testing.T) {
 }
 
 func TestSavePersonToCookies(t *testing.T) {
-	config.Configure()
+	config.ConfigureWeb()
 
 	recorder := httptest.NewRecorder()
 
@@ -161,7 +161,7 @@ func TestCheckedInHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\r\n", string(body))
+	assert.Contains(t, string(body), "Max Mustermann,TestLocation")
 
 	// cookies should be set
 	cookies := resp.Cookies()
@@ -191,5 +191,5 @@ func TestCheckedOutHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, "Max Mustermann,TestLocation\r\n", string(body))
+	assert.Contains(t, string(body), "Max Mustermann,TestLocation")
 }
