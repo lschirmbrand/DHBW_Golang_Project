@@ -57,7 +57,7 @@ func TestTokenValidationWrapperNotValid(t *testing.T) {
 }
 
 func TestSavePersonToCookies(t *testing.T) {
-	config.Configure()
+	config.ConfigureWeb()
 
 	recorder := httptest.NewRecorder()
 

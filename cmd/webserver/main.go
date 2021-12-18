@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	config.Configure()
+	config.ConfigureWeb()
 
 	var wg sync.WaitGroup
 

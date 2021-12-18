@@ -1,39 +1,46 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
+	"DHBW_Golang_Project/pkg/config"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCheckFlagFunctionality(t *testing.T){
-	datePtr := "2021-10-29"
-	operationPtr := "Visitor"
+func TestCheckFlagFunctionality(t *testing.T) {
+	date := "2021-10-29"
+	config.Date = &date
+	operation := "Visitor"
+	config.Operation = &operation
 	var selectedOperation Operation
-	queryPtr := "QueryWord"
+	query := "QueryWord"
+	config.Query = &query
 
-	res, fails := checkFlagFunctionality(&datePtr, &operationPtr, &selectedOperation, &queryPtr)
+	res, fails := checkFlagFunctionality(&selectedOperation)
 	assert.True(t, res)
 	assert.EqualValues(t, 0, len(*fails))
 	assert.EqualValues(t, string(selectedOperation), VISITOR)
 
-	operationPtr = "Location"
-	res, fails = checkFlagFunctionality(&datePtr, &operationPtr, &selectedOperation, &queryPtr)
+	operation = "Location"
+	res, fails = checkFlagFunctionality(&selectedOperation)
 	assert.True(t, res)
 	assert.EqualValues(t, 0, len(*fails))
 	assert.EqualValues(t, string(selectedOperation), LOCATION)
 
-	datePtr = "2021-13-29"
-	res, fails = checkFlagFunctionality(&datePtr, &operationPtr, &selectedOperation, &queryPtr)
+	date = "2021-13-29"
+	config.Date = &date
+	res, fails = checkFlagFunctionality(&selectedOperation)
 	assert.False(t, res)
 	assert.EqualValues(t, 1, len(*fails))
 
-	operationPtr = "somethingDifferent"
-	res, fails = checkFlagFunctionality(&datePtr, &operationPtr, &selectedOperation, &queryPtr)
+	operation = "somethingDifferent"
+	res, fails = checkFlagFunctionality(&selectedOperation)
 	assert.False(t, res)
 	assert.EqualValues(t, 2, len(*fails))
 
-	queryPtr = ""
-	res, fails = checkFlagFunctionality(&datePtr, &operationPtr, &selectedOperation, &queryPtr)
+	query = ""
+	config.Query = &query
+	res, fails = checkFlagFunctionality(&selectedOperation)
 	assert.False(t, res)
 	assert.EqualValues(t, 3, len(*fails))
 }
@@ -82,7 +89,7 @@ func TestOperationValidator(t *testing.T) {
 	assert.True(t, res)
 }
 
-func TestYesNoValidator(t *testing.T){
+func TestYesNoValidator(t *testing.T) {
 	res, _ := validateYesNoInput("")
 	assert.False(t, res)
 	res, _ = validateYesNoInput("something")
@@ -119,7 +126,7 @@ func TestYesNoValidator(t *testing.T){
 	assert.True(t, res)
 }
 
-func TestValidateQueryInput(t *testing.T){
+func TestValidateQueryInput(t *testing.T) {
 	res := validateQueryInput("")
 	assert.False(t, res)
 	res = validateQueryInput("something")
