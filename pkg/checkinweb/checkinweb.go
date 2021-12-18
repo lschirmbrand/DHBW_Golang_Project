@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
 	"time"
@@ -233,9 +234,9 @@ func readPersonFromCookies(r *http.Request) *Person {
 		p.Firstname = decodeFromBase64(firstName.Value)
 	}
 
-	lastName, err := r.Cookie(firstNameKey)
+	lastName, err := r.Cookie(lastNameKey)
 	if err == nil {
-		p.Firstname = decodeFromBase64(lastName.Value)
+		p.Lastname = decodeFromBase64(lastName.Value)
 	}
 
 	street, err := r.Cookie(streetKey)
@@ -264,15 +265,20 @@ func decodeFromBase64(encoded string) string {
 
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := token.Token(r.URL.Query().Get("token"))
-		l := location.Location(r.URL.Query().Get("location"))
-		if valid := validator(t, l); valid {
-			ctx := context.WithValue(r.Context(), locationKey, l)
+
+		t, _ := url.QueryUnescape(r.URL.Query().Get("token"))
+		l, _ := url.QueryUnescape(r.URL.Query().Get("location"))
+
+		tok := token.Token(t)
+		loc := location.Location(l)
+
+		if valid := validator(tok, loc); valid {
+			ctx := context.WithValue(r.Context(), locationKey, loc)
 
 			handler(w, r.WithContext(ctx))
 		} else {
 			http.Error(w,
-				http.StatusText(http.StatusBadRequest)+"not a valid token",
+				http.StatusText(http.StatusBadRequest)+" not a valid token",
 				http.StatusBadRequest)
 		}
 	}
