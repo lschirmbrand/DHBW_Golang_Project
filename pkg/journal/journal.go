@@ -18,7 +18,6 @@ type Credentials struct {
 	Timestamp time.Time
 }
 
-const PATHTOLOGS = "logs"
 const DATEFORMAT = "2006-01-02"
 const DATEFORMATWITHTIME = "02-01-2006 15:04:05"
 
