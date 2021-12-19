@@ -4,9 +4,9 @@ import (
 	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/pkg/person"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,27 +17,19 @@ import (
 )
 
 type CheckInPageData struct {
-	Person
+	Person   person.P
 	Location location.Location
 }
 
 type CheckedInPageData struct {
-	Person
+	Person   person.P
 	Location location.Location
 	Time     string
 }
 
 type CheckedoutPageData struct {
-	Person
+	Person   person.P
 	Location location.Location
-}
-
-type Person struct {
-	Firstname string
-	Lastname  string
-	Street    string
-	PLZ       string
-	City      string
 }
 
 const (
@@ -90,7 +82,7 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	loc := r.Context().Value(locationKey).(location.Location)
 
 	// read saved person from cookies
-	pers := readPersonFromCookies(r)
+	pers := person.ReadFromCookies(r)
 
 	data := CheckInPageData{
 		Person:   *pers,
@@ -110,12 +102,12 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// read Person and location from Post Form
-	p := Person{
-		Firstname: r.PostFormValue(firstNameKey),
-		Lastname:  r.PostFormValue(lastNameKey),
-		Street:    r.PostFormValue(streetKey),
-		PLZ:       r.PostFormValue(plzKey),
-		City:      r.PostFormValue(cityKey),
+	p := person.P{
+		Firstname: r.PostFormValue(person.FirstNameKey),
+		Lastname:  r.PostFormValue(person.LastNameKey),
+		Street:    r.PostFormValue(person.StreetKey),
+		PLZ:       r.PostFormValue(person.PlzKey),
+		City:      r.PostFormValue(person.CityKey),
 	}
 
 	loc := location.Location(r.PostFormValue(locationKey))
@@ -132,7 +124,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
-	savePersonToCookies(rw, &p)
+	person.SaveToCookies(rw, &p)
 
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
@@ -152,12 +144,12 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	p := Person{
-		Firstname: r.PostFormValue(firstNameKey),
-		Lastname:  r.PostFormValue(lastNameKey),
-		Street:    r.PostFormValue(streetKey),
-		PLZ:       r.PostFormValue(plzKey),
-		City:      r.PostFormValue(cityKey),
+	p := person.P{
+		Firstname: r.PostFormValue(person.FirstNameKey),
+		Lastname:  r.PostFormValue(person.LastNameKey),
+		Street:    r.PostFormValue(person.StreetKey),
+		PLZ:       r.PostFormValue(person.PlzKey),
+		City:      r.PostFormValue(person.CityKey),
 	}
 
 	data := CheckedoutPageData{
@@ -179,90 +171,6 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	checkedOutTemplate.Execute(rw, data)
 }
 
-func savePersonToCookies(rw http.ResponseWriter, p *Person) {
-
-	lifetime := time.Hour * time.Duration(*config.CookieLifetime)
-
-	firstNameCookie := http.Cookie{
-		Name:    firstNameKey,
-		Value:   encodeToBase64(p.Firstname),
-		Expires: time.Now().Add(lifetime),
-	}
-	lastNameCookie := http.Cookie{
-		Name:    lastNameKey,
-		Value:   encodeToBase64(p.Lastname),
-		Expires: time.Now().Add(lifetime),
-	}
-	streetCookie := http.Cookie{
-		Name:    streetKey,
-		Value:   encodeToBase64(p.Street),
-		Expires: time.Now().Add(lifetime),
-	}
-	plzCookie := http.Cookie{
-		Name:    plzKey,
-		Value:   encodeToBase64(p.PLZ),
-		Expires: time.Now().Add(lifetime),
-	}
-	cityCookie := http.Cookie{
-		Name:    cityKey,
-		Value:   encodeToBase64(p.City),
-		Expires: time.Now().Add(lifetime),
-	}
-
-	http.SetCookie(rw, &firstNameCookie)
-	http.SetCookie(rw, &lastNameCookie)
-	http.SetCookie(rw, &streetCookie)
-	http.SetCookie(rw, &plzCookie)
-	http.SetCookie(rw, &cityCookie)
-}
-
-func encodeToBase64(str string) string {
-	return base64.RawStdEncoding.EncodeToString([]byte(str))
-}
-
-func readPersonFromCookies(r *http.Request) *Person {
-	p := Person{
-		Firstname: "",
-		Lastname:  "",
-		Street:    "",
-		PLZ:       "",
-		City:      "",
-	}
-
-	firstName, err := r.Cookie(firstNameKey)
-	if err == nil {
-		p.Firstname = decodeFromBase64(firstName.Value)
-	}
-
-	lastName, err := r.Cookie(lastNameKey)
-	if err == nil {
-		p.Lastname = decodeFromBase64(lastName.Value)
-	}
-
-	street, err := r.Cookie(streetKey)
-	if err == nil {
-		p.Street = decodeFromBase64(street.Value)
-	}
-
-	plz, err := r.Cookie(plzKey)
-	if err == nil {
-		p.PLZ = decodeFromBase64(plz.Value)
-	}
-
-	city, err := r.Cookie(cityKey)
-	if err == nil {
-		p.City = decodeFromBase64(city.Value)
-	}
-
-	return &p
-}
-
-func decodeFromBase64(encoded string) string {
-	decoded, _ := base64.RawStdEncoding.DecodeString(encoded)
-
-	return string(decoded)
-}
-
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -278,13 +186,13 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 			handler(w, r.WithContext(ctx))
 		} else {
 			http.Error(w,
-				http.StatusText(http.StatusBadRequest)+" not a valid token",
+				http.StatusText(http.StatusBadRequest)+" unvalid token",
 				http.StatusBadRequest)
 		}
 	}
 }
 
-func validateFormInput(p Person) bool {
+func validateFormInput(p person.P) bool {
 
 	regexp.Match("[0-9]{5}", []byte(p.PLZ))
 
