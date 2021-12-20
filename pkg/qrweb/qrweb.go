@@ -32,7 +32,6 @@ type locationsPageData struct {
 }
 
 func Mux() http.Handler {
-
 	parseTemplates(*config.TemplatePath)
 	location.ReadLocations(*config.LocationFilePath)
 	go reloadQR()

@@ -17,19 +17,21 @@ import (
 )
 
 type CheckInPageData struct {
-	Person   person.P
-	Location location.Location
+	Person       person.P
+	Location     string
+	Token        string
+	InvalidInput bool
 }
 
 type CheckedInPageData struct {
 	Person   person.P
-	Location location.Location
+	Location string
 	Time     string
 }
 
 type CheckedoutPageData struct {
 	Person   person.P
-	Location location.Location
+	Location string
 }
 
 const (
@@ -78,15 +80,20 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 			http.StatusMethodNotAllowed)
 	}
 
-	// read location from request context
+	// read location and token from request context
 	loc := r.Context().Value(locationKey).(location.Location)
+	tok := r.Context().Value("token").(token.Token)
+
+	invalid := r.URL.Query().Has("invalid_input")
 
 	// read saved person from cookies
 	pers := person.ReadFromCookies(r)
 
 	data := CheckInPageData{
-		Person:   *pers,
-		Location: location.Location(loc),
+		Person:       *pers,
+		Location:     string(loc),
+		Token:        string(tok),
+		InvalidInput: invalid,
 	}
 
 	checkInTemplate.Execute(rw, data)
@@ -112,19 +119,30 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	loc := location.Location(r.PostFormValue(locationKey))
 
+	// validate location
 	if !location.Validate(loc) {
 		http.Error(rw,
 			http.StatusText(http.StatusBadRequest)+"not a valid location",
 			http.StatusBadRequest)
 	}
 
-	data := CheckedInPageData{
-		Person:   p,
-		Location: location.Location(loc),
-		Time:     time.Now().Format(time.RFC3339),
+	person.SaveToCookies(rw, &p)
+
+	// validate Person input
+
+	if !validateFormInput(p) {
+		token := r.PostFormValue("token")
+		url := fmt.Sprintf("/checkin?location=%v&token=%v&invalid_input", url.QueryEscape(string(loc)), url.QueryEscape(token))
+
+		http.Redirect(rw, r, url, http.StatusSeeOther)
+		return
 	}
 
-	person.SaveToCookies(rw, &p)
+	data := CheckedInPageData{
+		Person:   p,
+		Location: string(loc),
+		Time:     time.Now().Format(time.RFC3339),
+	}
 
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
@@ -133,7 +151,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 		Login:    true,
 		Name:     name,
 		Address:  address,
-		Location: data.Location,
+		Location: location.Location(data.Location),
 		TimeCome: time.Now(),
 	})
 
@@ -154,7 +172,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 
 	data := CheckedoutPageData{
 		Person:   p,
-		Location: location.Location(r.PostFormValue(locationKey)),
+		Location: r.PostFormValue(locationKey),
 	}
 
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
@@ -164,7 +182,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 		Login:    false,
 		Name:     name,
 		Address:  address,
-		Location: data.Location,
+		Location: location.Location(data.Location),
 		TimeGone: time.Now(),
 	})
 
@@ -182,6 +200,7 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 
 		if valid := validator(tok, loc); valid {
 			ctx := context.WithValue(r.Context(), locationKey, loc)
+			ctx = context.WithValue(ctx, "token", tok)
 
 			handler(w, r.WithContext(ctx))
 		} else {
@@ -194,7 +213,15 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 
 func validateFormInput(p person.P) bool {
 
-	regexp.Match("[0-9]{5}", []byte(p.PLZ))
+	namePattern := regexp.MustCompile(`^[\wÄÖÜäöüß\-\s]+$`)
+	streetPattern := regexp.MustCompile(`^[\wÄÖÜäöüß\-\s.]+ [0-9]+[A-Za-z]*$`)
+	plzPattern := regexp.MustCompile("^[0-9]{5}$")
 
-	return true
+	first := namePattern.MatchString(p.Firstname)
+	last := namePattern.MatchString(p.Lastname)
+	city := namePattern.MatchString(p.City)
+	street := streetPattern.MatchString(p.Street)
+	plz := plzPattern.MatchString(p.PLZ)
+
+	return first && last && city && street && plz
 }
