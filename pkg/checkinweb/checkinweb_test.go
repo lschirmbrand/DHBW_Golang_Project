@@ -3,6 +3,7 @@ package checkinweb
 import (
 	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/pkg/person"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"fmt"
@@ -127,5 +128,46 @@ func TestCheckedOutHandler(t *testing.T) {
 }
 
 func TestValidateFormInput(t *testing.T) {
-
+	assert.True(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12.",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "123456",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "",
+	}))
 }

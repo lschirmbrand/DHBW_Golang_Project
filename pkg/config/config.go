@@ -17,7 +17,10 @@ const (
 
 	defaultTempaltePath     = "web/templates"
 	defaultQrCodePath       = "assets/qr-codes"
-	defaultLocationFilePath = "assets/location.xml"
+	defaultLocationFilePath = "assets/locations.xml"
+
+	defaultCertificateFilePath = "assets/ssl/cert.pem"
+	defaultKeyFilePath         = "assets/ssl/key.pem"
 
 	defaultOperation = "Visitor"
 	defaultQuery     = ""
@@ -61,6 +64,9 @@ func ConfigureWeb() {
 		TemplatePath = flag.String("templatePath", defaultTempaltePath, "path to html-template directory")
 		QrCodePath = flag.String("qrCodePath", defaultQrCodePath, "path to save qr-codes")
 		LocationFilePath = flag.String("locationFilePath", defaultLocationFilePath, "path to xml file with locations")
+
+		CertificateFilePath = flag.String("certificateFilePath", defaultCertificateFilePath, "path to ssl certificate")
+		KeyFilePath = flag.String("keyFilePath", defaultKeyFilePath, "path to ssl key")
 
 		configureMutual()
 
