@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"time"
@@ -15,8 +16,8 @@ import (
 )
 
 var (
-	qrTemplate  *template.Template
-	checkinUrls map[location.Location]string
+	qrTemplate, locsTemplate *template.Template
+	checkinUrls              map[location.Location]string
 )
 
 type qrCodePageData struct {
@@ -25,8 +26,12 @@ type qrCodePageData struct {
 	CheckInUrl  string
 }
 
-func Mux() http.Handler {
+type locationsPageData struct {
+	Location string
+	Url      string
+}
 
+func Mux() http.Handler {
 	parseTemplates(*config.TemplatePath)
 	location.ReadLocations(*config.LocationFilePath)
 	go reloadQR()
@@ -36,12 +41,14 @@ func Mux() http.Handler {
 	// mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/qr", handleQR)
+	mux.HandleFunc("/locations", handleLocations)
 
 	return mux
 }
 
 func parseTemplates(templateDir string) {
 	qrTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "qr-code.html")))
+	locsTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "locations.html")))
 }
 
 func handleQR(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +65,21 @@ func handleQR(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleLocations(w http.ResponseWriter, r *http.Request) {
+	locs := location.Locations
+
+	data := make([]locationsPageData, len(locs))
+
+	for i, loc := range locs {
+		data[i] = locationsPageData{
+			Location: string(loc),
+			Url:      "qr?location=" + url.QueryEscape(string(loc)),
+		}
+	}
+
+	locsTemplate.Execute(w, data)
+}
+
 func reloadQR() {
 	checkinUrls = make(map[location.Location]string)
 
@@ -70,7 +92,11 @@ func reloadQR() {
 
 func createUrl() {
 	for _, loc := range location.Locations {
-		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v", *config.CheckinPort, token.CreateToken(loc), loc)
+		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v",
+			*config.CheckinPort,
+			url.QueryEscape(string(token.CreateToken(loc))),
+			url.QueryEscape(string(loc)),
+		)
 		if _, err := os.Stat(*config.QrCodePath); os.IsNotExist(err) {
 			os.MkdirAll(*config.QrCodePath, 0755)
 		}

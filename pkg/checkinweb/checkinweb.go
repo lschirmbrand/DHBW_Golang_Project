@@ -4,47 +4,43 @@ import (
 	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/pkg/person"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"path"
+	"regexp"
 	"time"
 )
 
 type CheckInPageData struct {
-	Person
-	Location location.Location
+	Person       person.P
+	Location     string
+	Token        string
+	InvalidInput bool
 }
 
 type CheckedInPageData struct {
-	Person
-	Location location.Location
+	Person   person.P
+	Location string
 	Time     string
 }
 
 type CheckedoutPageData struct {
-	Person
-	Location location.Location
+	Person   person.P
+	Location string
 }
-
-type Person struct {
-	Name   string
-	Street string
-	PLZ    string
-	City   string
-}
-
-type key string
 
 const (
-	locationKey key = "location"
-	nameKey     key = "name"
-	streetKey   key = "street"
-	plzKey      key = "plz"
-	cityKey     key = "city"
+	locationKey  = "location"
+	firstNameKey = "firstName"
+	lastNameKey  = "lastName"
+	streetKey    = "street"
+	plzKey       = "plz"
+	cityKey      = "city"
 )
 
 var (
@@ -74,45 +70,88 @@ func parseTemplates(templateDir string) {
 	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
 }
 
+// handler function for /checkin route
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	l := r.Context().Value(locationKey).(location.Location)
+	// only GET allowed
+	if r.Method != http.MethodGet {
+		http.Error(rw,
+			http.StatusText(http.StatusMethodNotAllowed),
+			http.StatusMethodNotAllowed)
+	}
 
-	p := readPersonFromCookies(r)
+	// read location and token from request context
+	loc := r.Context().Value(locationKey).(location.Location)
+	tok := r.Context().Value("token").(token.Token)
 
-	data := CheckInPageData{Person: *p, Location: location.Location(l)}
+	invalid := r.URL.Query().Has("invalid_input")
+
+	// read saved person from cookies
+	pers := person.ReadFromCookies(r)
+
+	data := CheckInPageData{
+		Person:       *pers,
+		Location:     string(loc),
+		Token:        string(tok),
+		InvalidInput: invalid,
+	}
 
 	checkInTemplate.Execute(rw, data)
 }
 
 func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
-	r.ParseForm()
-
-	p := Person{
-		Name:   r.PostFormValue("name"),
-		Street: r.PostFormValue("street"),
-		PLZ:    r.PostFormValue("plz"),
-		City:   r.PostFormValue("city"),
+	// only POST allowed
+	if r.Method != http.MethodPost {
+		http.Error(rw,
+			http.StatusText(http.StatusMethodNotAllowed),
+			http.StatusMethodNotAllowed)
 	}
 
-	loc := r.PostFormValue("location")
+	// read Person and location from Post Form
+	p := person.P{
+		Firstname: r.PostFormValue(person.FirstNameKey),
+		Lastname:  r.PostFormValue(person.LastNameKey),
+		Street:    r.PostFormValue(person.StreetKey),
+		PLZ:       r.PostFormValue(person.PlzKey),
+		City:      r.PostFormValue(person.CityKey),
+	}
+
+	loc := location.Location(r.PostFormValue(locationKey))
+
+	// validate location
+	if !location.Validate(loc) {
+		http.Error(rw,
+			http.StatusText(http.StatusBadRequest)+"not a valid location",
+			http.StatusBadRequest)
+	}
+
+	person.SaveToCookies(rw, &p)
+
+	// validate Person input
+
+	if !validateFormInput(p) {
+		token := r.PostFormValue("token")
+		url := fmt.Sprintf("/checkin?location=%v&token=%v&invalid_input", url.QueryEscape(string(loc)), url.QueryEscape(token))
+
+		http.Redirect(rw, r, url, http.StatusSeeOther)
+		return
+	}
 
 	data := CheckedInPageData{
 		Person:   p,
-		Location: location.Location(loc),
+		Location: string(loc),
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
-	savePersonToCookies(rw, &p)
-
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	journal.LogInToJournal(&journal.Credentials{
 		Login:    true,
-		Name:     p.Name,
+		Name:     name,
 		Address:  address,
-		Location: data.Location,
+		Location: location.Location(data.Location),
 		TimeCome: time.Now(),
 	})
 
@@ -123,115 +162,66 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	p := Person{
-		Name:   r.PostFormValue("name"),
-		Street: r.PostFormValue("street"),
-		PLZ:    r.PostFormValue("plz"),
-		City:   r.PostFormValue("city"),
+	p := person.P{
+		Firstname: r.PostFormValue(person.FirstNameKey),
+		Lastname:  r.PostFormValue(person.LastNameKey),
+		Street:    r.PostFormValue(person.StreetKey),
+		PLZ:       r.PostFormValue(person.PlzKey),
+		City:      r.PostFormValue(person.CityKey),
 	}
 
 	data := CheckedoutPageData{
 		Person:   p,
-		Location: location.Location(r.PostFormValue("location")),
+		Location: r.PostFormValue(locationKey),
 	}
 
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	journal.LogOutToJournal(&journal.Credentials{
 		Login:    false,
-		Name:     p.Name,
+		Name:     name,
 		Address:  address,
-		Location: data.Location,
+		Location: location.Location(data.Location),
 		TimeGone: time.Now(),
 	})
 
 	checkedOutTemplate.Execute(rw, data)
 }
 
-func savePersonToCookies(rw http.ResponseWriter, p *Person) {
-
-	lifetime := time.Hour * time.Duration(*config.CookieLifetime)
-
-	nameCookie := http.Cookie{
-		Name:    string(nameKey),
-		Value:   encodeToBase64(p.Name),
-		Expires: time.Now().Add(lifetime),
-	}
-	streetCookie := http.Cookie{
-		Name:    string(streetKey),
-		Value:   encodeToBase64(p.Street),
-		Expires: time.Now().Add(lifetime),
-	}
-	plzCookie := http.Cookie{
-		Name:    string(plzKey),
-		Value:   encodeToBase64(p.PLZ),
-		Expires: time.Now().Add(lifetime),
-	}
-	cityCookie := http.Cookie{
-		Name:    string(cityKey),
-		Value:   encodeToBase64(p.City),
-		Expires: time.Now().Add(lifetime),
-	}
-
-	http.SetCookie(rw, &nameCookie)
-	http.SetCookie(rw, &streetCookie)
-	http.SetCookie(rw, &plzCookie)
-	http.SetCookie(rw, &cityCookie)
-}
-
-func encodeToBase64(str string) string {
-	return base64.RawStdEncoding.EncodeToString([]byte(str))
-}
-
-func readPersonFromCookies(r *http.Request) *Person {
-	p := Person{
-		Name:   "",
-		Street: "",
-		PLZ:    "",
-		City:   "",
-	}
-
-	name, err := r.Cookie(string(nameKey))
-	if err == nil {
-		p.Name = decodeFromBase64(name.Value)
-	}
-
-	street, err := r.Cookie(string(streetKey))
-	if err == nil {
-		p.Street = decodeFromBase64(street.Value)
-	}
-
-	plz, err := r.Cookie(string(plzKey))
-	if err == nil {
-		p.PLZ = decodeFromBase64(plz.Value)
-	}
-
-	city, err := r.Cookie(string(cityKey))
-	if err == nil {
-		p.City = decodeFromBase64(city.Value)
-	}
-
-	return &p
-}
-
-func decodeFromBase64(encoded string) string {
-	decoded, _ := base64.RawStdEncoding.DecodeString(encoded)
-
-	return string(decoded)
-}
-
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := token.Token(r.URL.Query().Get("token"))
-		l := location.Location(r.URL.Query().Get("location"))
-		if valid := validator(t, l); valid {
-			ctx := context.WithValue(r.Context(), locationKey, l)
+
+		t, _ := url.QueryUnescape(r.URL.Query().Get("token"))
+		l, _ := url.QueryUnescape(r.URL.Query().Get("location"))
+
+		tok := token.Token(t)
+		loc := location.Location(l)
+
+		if valid := validator(tok, loc); valid {
+			ctx := context.WithValue(r.Context(), locationKey, loc)
+			ctx = context.WithValue(ctx, "token", tok)
 
 			handler(w, r.WithContext(ctx))
 		} else {
 			http.Error(w,
-				http.StatusText(http.StatusBadRequest),
+				http.StatusText(http.StatusBadRequest)+" unvalid token",
 				http.StatusBadRequest)
 		}
 	}
+}
+
+func validateFormInput(p person.P) bool {
+
+	namePattern := regexp.MustCompile(`^[\wÄÖÜäöüß\-\s]+$`)
+	streetPattern := regexp.MustCompile(`^[\wÄÖÜäöüß\-\s.]+ [0-9]+[A-Za-z]*$`)
+	plzPattern := regexp.MustCompile("^[0-9]{5}$")
+
+	first := namePattern.MatchString(p.Firstname)
+	last := namePattern.MatchString(p.Lastname)
+	city := namePattern.MatchString(p.City)
+	street := streetPattern.MatchString(p.Street)
+	plz := plzPattern.MatchString(p.PLZ)
+
+	return first && last && city && street && plz
 }

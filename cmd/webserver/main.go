@@ -7,37 +7,44 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
 func main() {
 	config.ConfigureWeb()
 
-	finished := make(chan bool)
+	var wg sync.WaitGroup
+
 	// run web server for checkin/checkout
-	go func(finished chan<- bool) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		fmt.Printf("Starting server for checkin at port %v\n", *config.CheckinPort)
 
-		err := http.ListenAndServeTLS(":"+fmt.Sprint(*config.CheckinPort), "assets/ssl/server.crt", "assets/ssl/server.key", checkinweb.Mux())
+		addr := fmt.Sprintf("localhost:%v", *config.CheckinPort)
+
+		err := http.ListenAndServeTLS(addr, *config.CertificateFilePath, *config.KeyFilePath, checkinweb.Mux())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		finished <- true
-	}(finished)
+	}()
 
 	// run web server for qr-codes
-	go func(finished chan<- bool) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
 		fmt.Printf("Starting server for qr-codes at port %v\n", *config.QRCodePort)
 
-		err := http.ListenAndServeTLS(":"+fmt.Sprint(*config.QRCodePort), "assets/ssl/server.crt", "assets/ssl/server.key", qrweb.Mux())
+		addr := fmt.Sprintf("localhost:%v", *config.QRCodePort)
+
+		err := http.ListenAndServeTLS(addr, *config.CertificateFilePath, *config.KeyFilePath, qrweb.Mux())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		finished <- true
-	}(finished)
+	}()
 
-	<-finished
-	<-finished
-
+	wg.Wait()
 }

@@ -3,6 +3,7 @@ package checkinweb
 import (
 	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/pkg/person"
 	"DHBW_Golang_Project/pkg/token"
 	"context"
 	"fmt"
@@ -52,78 +53,8 @@ func TestTokenValidationWrapperNotValid(t *testing.T) {
 	body, err := ioutil.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "Bad Request\n", string(body))
+	assert.Equal(t, "Bad Request unvalid token\n", string(body))
 
-}
-
-func TestSavePersonToCookies(t *testing.T) {
-	config.ConfigureWeb()
-
-	recorder := httptest.NewRecorder()
-
-	p := Person{
-		Name:   "Max Mustermann",
-		Street: "Teststr. 5",
-		PLZ:    "12345",
-		City:   "Musterstadt",
-	}
-
-	savePersonToCookies(recorder, &p)
-
-	cookies := recorder.Result().Cookies()
-
-	nameCookie := cookies[0]
-	assert.Equal(t, p.Name, decodeFromBase64(nameCookie.Value))
-
-	streetCookie := cookies[1]
-	assert.Equal(t, p.Street, decodeFromBase64(streetCookie.Value))
-
-	plzCookie := cookies[2]
-	assert.Equal(t, p.PLZ, decodeFromBase64(plzCookie.Value))
-
-	cityCookie := cookies[3]
-	assert.Equal(t, p.City, decodeFromBase64(cityCookie.Value))
-
-}
-
-func TestReadPersonFromCookies(t *testing.T) {
-
-	req := httptest.NewRequest("GET", "http://localhost", nil)
-
-	p := Person{
-		Name:   "Max Mustermann",
-		Street: "Teststr. 5",
-		PLZ:    "12345",
-		City:   "Musterstadt",
-	}
-
-	nameCookie := http.Cookie{
-		Name:  string(nameKey),
-		Value: encodeToBase64(p.Name),
-	}
-	streetCookie := http.Cookie{
-		Name:  string(streetKey),
-		Value: encodeToBase64(p.Street),
-	}
-	plzCookie := http.Cookie{
-		Name:  string(plzKey),
-		Value: encodeToBase64(p.PLZ),
-	}
-	cityCookie := http.Cookie{
-		Name:  string(cityKey),
-		Value: encodeToBase64(p.City),
-	}
-
-	req.AddCookie(&nameCookie)
-	req.AddCookie(&streetCookie)
-	req.AddCookie(&plzCookie)
-	req.AddCookie(&cityCookie)
-
-	fmt.Println(nameCookie)
-
-	p1 := readPersonFromCookies(req)
-
-	assert.Equal(t, p, *p1)
 }
 
 func TestCheckinHandler(t *testing.T) {
@@ -144,8 +75,11 @@ func TestCheckinHandler(t *testing.T) {
 
 func TestCheckedInHandler(t *testing.T) {
 	parseTemplates("test_assets/templates")
+	config.ConfigureWeb()
 
-	reader := strings.NewReader("name=Max+Mustermann&street=Musterstr.+12&plz=12345&city=Musterstadt&location=TestLocation")
+	location.ReadLocations("test_assets/locations.xml")
+
+	reader := strings.NewReader("firstName=Max&lastName=Mustermann&street=Musterstr.+12&plz=12345&city=Musterstadt&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
@@ -161,21 +95,18 @@ func TestCheckedInHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Contains(t, string(body), "Max Mustermann,TestLocation")
-
-	// cookies should be set
-	cookies := resp.Cookies()
-
-	assert.Equal(t, "Max Mustermann", decodeFromBase64(cookies[0].Value))
-	assert.Equal(t, "Musterstr. 12", decodeFromBase64(cookies[1].Value))
-	assert.Equal(t, "12345", decodeFromBase64(cookies[2].Value))
-	assert.Equal(t, "Musterstadt", decodeFromBase64(cookies[3].Value))
+	assert.Contains(t, string(body), "Max")
+	assert.Contains(t, string(body), "Mustermann")
+	assert.Contains(t, string(body), "TestLocation")
 }
 
 func TestCheckedOutHandler(t *testing.T) {
 	parseTemplates("test_assets/templates")
+	config.ConfigureWeb()
 
-	reader := strings.NewReader("name=Max+Mustermann&location=TestLocation")
+	location.ReadLocations("test_assets/locations.xml")
+
+	reader := strings.NewReader("firstName=Max&lastName=Mustermann&location=TestLocation")
 	req, err := http.NewRequest("POST", "http://localhost", reader)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
@@ -191,5 +122,52 @@ func TestCheckedOutHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Contains(t, string(body), "Max Mustermann,TestLocation")
+	assert.Contains(t, string(body), "Max")
+	assert.Contains(t, string(body), "Mustermann")
+	assert.Contains(t, string(body), "TestLocation")
+}
+
+func TestValidateFormInput(t *testing.T) {
+	assert.True(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12.",
+		PLZ:       "12345",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "123456",
+		City:      "Musterstadt",
+	}))
+	assert.False(t, validateFormInput(person.P{
+		Firstname: "Max",
+		Lastname:  "Mustermann",
+		Street:    "Musterstraße 12",
+		PLZ:       "12345",
+		City:      "",
+	}))
 }
