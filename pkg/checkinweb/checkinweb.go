@@ -148,11 +148,11 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	journal.LogInToJournal(&journal.Credentials{
-		Login:    true,
-		Name:     name,
-		Address:  address,
-		Location: location.Location(data.Location),
-		TimeCome: time.Now(),
+		Checkin:   true,
+		Name:      name,
+		Address:   address,
+		Location:  location.Location(data.Location),
+		Timestamp: time.Now(),
 	})
 
 	checkedInTemplate.Execute(rw, data)
@@ -179,11 +179,11 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	journal.LogOutToJournal(&journal.Credentials{
-		Login:    false,
-		Name:     name,
-		Address:  address,
-		Location: location.Location(data.Location),
-		TimeGone: time.Now(),
+		Checkin:   false,
+		Name:      name,
+		Address:   address,
+		Location:  location.Location(data.Location),
+		Timestamp: time.Now(),
 	})
 
 	checkedOutTemplate.Execute(rw, data)

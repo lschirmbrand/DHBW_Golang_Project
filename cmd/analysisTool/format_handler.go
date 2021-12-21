@@ -22,6 +22,8 @@ func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
 		switch strings.ToLower(*config.Operation) {
 		case strings.ToLower(string(VISITOR)):
 			*selectedOperation = VISITOR
+		case strings.ToLower(string(CONTACT)):
+			*selectedOperation = CONTACT
 		default:
 			*selectedOperation = LOCATION
 		}
@@ -39,7 +41,7 @@ func validateDateInput(date string) (bool, error) {
 }
 
 func validateOperationInput(operation string) (bool, error) {
-	return regexp.Match("(?i)\\bvisitor\\b|location\\b", []byte(operation))
+	return regexp.Match("(?i)\\bvisitor\\b|location\\b|contact\\b", []byte(operation))
 }
 
 func validateYesNoInput(operation string) (bool, error) {

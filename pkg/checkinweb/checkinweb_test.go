@@ -95,6 +95,7 @@ func TestCheckedInHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
+
 	assert.Contains(t, string(body), "Max")
 	assert.Contains(t, string(body), "Mustermann")
 	assert.Contains(t, string(body), "TestLocation")
@@ -122,6 +123,7 @@ func TestCheckedOutHandler(t *testing.T) {
 	// body should contain name and location
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
+
 	assert.Contains(t, string(body), "Max")
 	assert.Contains(t, string(body), "Mustermann")
 	assert.Contains(t, string(body), "TestLocation")

@@ -11,15 +11,13 @@ import (
 )
 
 type Credentials struct {
-	Login    bool
-	Name     string
-	Address  string
-	Location location.Location
-	TimeCome time.Time
-	TimeGone time.Time
+	Checkin bool
+	Name    string
+	Address   string
+	Location  location.Location
+	Timestamp time.Time
 }
 
-const PATHTOLOGS = "logs"
 const DATEFORMAT = "2006-01-02"
 const DATEFORMATWITHTIME = "02-01-2006 15:04:05"
 
@@ -36,13 +34,13 @@ func check(e error) bool {
 }
 
 func LogOutToJournal(cred *Credentials) bool {
-	cred.Login = false
+	cred.Checkin = false
 	ok := logToJournal(cred)
 	return ok
 }
 
 func LogInToJournal(cred *Credentials) bool {
-	cred.Login = true
+	cred.Checkin = true
 	ok := logToJournal(cred)
 	return ok
 }
@@ -77,7 +75,7 @@ func returnFilepath() string {
 
 func buildCredits(credits *Credentials) string {
 	var sb strings.Builder
-	switch credits.Login {
+	switch credits.Checkin {
 	case true:
 		sb.WriteString("CHECKIN")
 	default:
@@ -90,9 +88,7 @@ func buildCredits(credits *Credentials) string {
 	sb.WriteString(",")
 	sb.WriteString(string(credits.Location))
 	sb.WriteString(",")
-	sb.WriteString(credits.TimeCome.Format(DATEFORMATWITHTIME))
-	sb.WriteString(",")
-	sb.WriteString(credits.TimeGone.Format(DATEFORMATWITHTIME))
+	sb.WriteString(credits.Timestamp.Format(DATEFORMATWITHTIME))
 	sb.WriteString(";\n")
 	return sb.String()
 }

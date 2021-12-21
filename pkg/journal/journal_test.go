@@ -2,7 +2,6 @@ package journal
 
 import (
 	"DHBW_Golang_Project/pkg/config"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -11,7 +10,7 @@ import (
 )
 
 var (
-	testLogPath string = "../../test-logs"
+	testLogPath = "../../test-logs"
 )
 
 func TestLogToJournal(t *testing.T) {
@@ -20,26 +19,18 @@ func TestLogToJournal(t *testing.T) {
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Login:    true,
+		Checkin:  true,
 		Address:  "Address",
 		Name:     "Name",
 		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Timestamp: time.Now(),
 	}
 
 	filePath := returnFilepath()
 	logToJournal(&cred)
 	data, e := os.ReadFile(filePath)
-
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestLogInToJournal(t *testing.T) {
@@ -51,8 +42,7 @@ func TestLogInToJournal(t *testing.T) {
 		Address:  "Address",
 		Name:     "Name",
 		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Timestamp: time.Now(),
 	}
 
 	LogInToJournal(&cred)
@@ -60,14 +50,8 @@ func TestLogInToJournal(t *testing.T) {
 	filePath := returnFilepath()
 	data, e := os.ReadFile(filePath)
 
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestLogOutToJournal(t *testing.T) {
@@ -79,8 +63,7 @@ func TestLogOutToJournal(t *testing.T) {
 		Address:  "Address",
 		Name:     "Name",
 		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Timestamp: time.Now(),
 	}
 
 	LogOutToJournal(&cred)
@@ -88,14 +71,8 @@ func TestLogOutToJournal(t *testing.T) {
 	filePath := returnFilepath()
 	data, e := os.ReadFile(filePath)
 
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
-	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestReturnCreditsToString(t *testing.T) {
@@ -103,10 +80,9 @@ func TestReturnCreditsToString(t *testing.T) {
 		Address:  "Address",
 		Name:     "Name",
 		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Timestamp: time.Now(),
 	}
-	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.TimeCome.Format(DATEFORMATWITHTIME)+","+cred.TimeGone.Format(DATEFORMATWITHTIME)+";\n")
+	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func TestLogTestExample(t *testing.T) {
@@ -115,23 +91,23 @@ func TestLogTestExample(t *testing.T) {
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Login:    true,
+		Checkin:  true,
 		Name:     "Name",
 		Address:  "Address",
 		Location: "Location",
-		TimeCome: time.Now(),
-		TimeGone: time.Now(),
+		Timestamp: time.Now(),
 	}
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 20; i++ {
 		LogInToJournal(&cred)
+		LogOutToJournal(&cred)
 	}
 }
 
 func configure() {
-
 	config.LogPath = &testLogPath
 }
 
 func cleanupTestLogs() {
-	os.RemoveAll(testLogPath)
+	//err := os.RemoveAll(testLogPath)
+	//check(err)
 }

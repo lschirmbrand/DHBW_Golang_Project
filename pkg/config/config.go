@@ -15,7 +15,7 @@ const (
 	defaultRefreshTime    = 60
 	defaultCookieLifetime = 24 * 356
 
-	defaultTempaltePath     = "web/templates"
+	defaultTemplatePath     = "web/templates"
 	defaultQrCodePath       = "assets/qr-codes"
 	defaultLocationFilePath = "assets/locations.xml"
 
@@ -48,6 +48,7 @@ var (
 	Date      *string
 	Operation *string
 	Query     *string
+	Testcase  *bool
 
 	parsedWeb          bool = false
 	parsedAnalysisTool bool = false
@@ -61,7 +62,7 @@ func ConfigureWeb() {
 		RefreshTime = flag.Int("refreshTime", defaultRefreshTime, "refresh time for qr-codes in seconds")
 		CookieLifetime = flag.Int("cookieLifeTime", defaultCookieLifetime, "Lifetime of Cookies in Hours")
 
-		TemplatePath = flag.String("templatePath", defaultTempaltePath, "path to html-template directory")
+		TemplatePath = flag.String("templatePath", defaultTemplatePath, "path to html-template directory")
 		QrCodePath = flag.String("qrCodePath", defaultQrCodePath, "path to save qr-codes")
 		LocationFilePath = flag.String("locationFilePath", defaultLocationFilePath, "path to xml file with locations")
 
@@ -80,6 +81,7 @@ func ConfigureAnalysisTool() {
 		Date = flag.String("date", time.Now().Format("2006-01-02"), "Date of the requested query. Format: YYYY-MM-DD")
 		Operation = flag.String("operation", defaultOperation, "Operation of the requested query. Format: Visitor or Location")
 		Query = flag.String("query", defaultQuery, "The keyword of the requested query.")
+		Testcase = flag.Bool("testcase", false, "Determines, whether output gets printed in the terminal.")
 
 		configureMutual()
 
@@ -90,5 +92,4 @@ func ConfigureAnalysisTool() {
 
 func configureMutual() {
 	LogPath = flag.String("logPath", defaultLogsPath, "path to logfile directory")
-
 }
