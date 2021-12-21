@@ -28,13 +28,14 @@ func TestContentToArray(t *testing.T) {
 	// assert.EqualValues(t, contentArray[1].Timestamp.Format(DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
+/*
 func BenchmarkPerformanceOfData(b *testing.B) {
 	fileContent := "LOGIN,name,address,location,20-10-2021 09:44:25,20-10-2021 09:44:25;\nLOGIN,name,address,location,20-10-2021 09:44:41,20-10-2021 09:44:41;\nLOGIN,name,address,location,20-10-2021 10:07:13,20-10-2021 10:07:13;\nLOGIN,name,address,location,20-10-2021 10:07:18,20-10-2021 10:07:18;\nLOGIN,name,address,location,20-10-2021 10:07:28,20-10-2021 10:07:28;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;\nLOGIN,name,address,location,20-10-2021 10:07:33,20-10-2021 10:07:33;"
 	for n := 0; n < b.N; n++ {
 		content := strings.Split(fileContent, "\n")
 		contentToCredits(&content)
 	}
-}
+}*/
 
 func TestStartAnalyticalToolDialog(t *testing.T) {
 	filePath := "../../" + buildFileLogPath(time.Now().Format(config.DATEFORMAT))

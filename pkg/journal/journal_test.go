@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	testLogPath string = "../../test-logs"
+	testLogPath = "../../test-logs"
 )
 
 func TestLogToJournal(t *testing.T) {
@@ -103,10 +103,10 @@ func TestLogTestExample(t *testing.T) {
 }
 
 func configure() {
-
 	config.LogPath = &testLogPath
 }
 
 func cleanupTestLogs() {
-	os.RemoveAll(testLogPath)
+	err := os.RemoveAll(testLogPath)
+	check(err)
 }
