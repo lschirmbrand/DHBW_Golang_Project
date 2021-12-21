@@ -27,6 +27,12 @@ func TestCheckFlagFunctionality(t *testing.T) {
 	assert.EqualValues(t, 0, len(*fails))
 	assert.EqualValues(t, string(selectedOperation), LOCATION)
 
+	operation = "Contact"
+	res, fails = checkFlagFunctionality(&selectedOperation)
+	assert.True(t, res)
+	assert.EqualValues(t, 0, len(*fails))
+	assert.EqualValues(t, string(selectedOperation), CONTACT)
+
 	date = "2021-13-29"
 	config.Date = &date
 	res, fails = checkFlagFunctionality(&selectedOperation)

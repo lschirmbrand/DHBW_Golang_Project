@@ -180,7 +180,7 @@ func splitDataRowToCells(row string) journal.Credentials {
 		cred.Address = cells[2]
 		cred.Location = location.Location(strings.ToLower(cells[3]))
 		var err error
-		cred.Timestamp, err = time.Parse(config.DATEFORMATWITHTIME, cells[4])
+		cred.Timestamp, err = time.Parse(config.DATEFORMATWITHTIME, trimStringBasedOnOS(cells[4], true))
 		check(err)
 	}
 	return cred

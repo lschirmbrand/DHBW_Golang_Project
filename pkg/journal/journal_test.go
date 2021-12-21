@@ -97,8 +97,9 @@ func TestLogTestExample(t *testing.T) {
 		Location: "Location",
 		Timestamp: time.Now(),
 	}
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 20; i++ {
 		LogInToJournal(&cred)
+		LogOutToJournal(&cred)
 	}
 }
 
@@ -107,6 +108,6 @@ func configure() {
 }
 
 func cleanupTestLogs() {
-	err := os.RemoveAll(testLogPath)
-	check(err)
+	//err := os.RemoveAll(testLogPath)
+	//check(err)
 }

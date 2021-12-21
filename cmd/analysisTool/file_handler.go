@@ -10,34 +10,6 @@ import (
 	"strings"
 )
 
-/*func readDataFromFile(filePath string) *[]string {
-	text, err := ioutil.ReadFile(filePath)
-	check(err)
-	out := strings.Split(string(text), "\n")
-	if len(out) > 0 {
-		out = out[:len(out)-1]
-	}
-	return &out
-}
-
-func exportToCSVFile(results *[]string, selector string, operation Operation, filePath string) {
-	f, e := os.Create(filePath)
-	check(e)
-	defer f.Close()
-
-	csvHeader := make([]string, 1)
-	csvHeader[0] = "Results for: " + selector
-
-	w := csv.NewWriter(f)
-	e = w.Write(csvHeader)
-	check(e)
-	e = w.Write(*(results))
-	w.Flush()
-	check(e)
-
-	fmt.Println("The query-result was exported to: " + filePath)
-}
-*/
 func buildFileLogPath(date string) string {
 	return path.Join(*config.LogPath, "logs-"+date+".txt")
 }
@@ -51,6 +23,12 @@ func readDataFromFile(filePath string) *[]string {
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
 	out := strings.Split(string(text), "\n")
+	for i, _ := range out{
+		out[i] = trimStringBasedOnOS(out[i], true)
+		if i == (len(out)-1) {
+			out[i] = strings.TrimSuffix(out[i], ";")
+		}
+	}
 	if len(out) > 0 {
 		out = out[:len(out)-1]
 	}
@@ -98,7 +76,7 @@ func createCSVHeader(selector string, operation Operation) *[]string {
 	case LOCATION:
 		fallthrough
 	case VISITOR:
-		infix = "Results of for the query: " + string(operation) + " = "
+		infix = "Results for the query: " + string(operation) + " = "
 	case CONTACT:
 		infix = string(operation) + " for the user: "
 	}

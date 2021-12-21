@@ -47,8 +47,10 @@ func trimStringBasedOnOS(text string, isSuffix bool) string {
 	isWindows := runtime.GOOS == "windows"
 	if isSuffix {
 		if isWindows {
-			text = strings.TrimSuffix(text, "\x0a\x0d")
-			return strings.TrimSuffix(text, "\r\n")
+			text = strings.TrimSuffix(text, "\x0d")
+			text = strings.TrimSuffix(text, "\x0a")
+			text = strings.TrimSuffix(text, "\n")
+			return strings.TrimSuffix(text, "\r")
 		}
 		text = strings.TrimSuffix(text, "\x0d")
 		return strings.TrimSuffix(text, "\n")

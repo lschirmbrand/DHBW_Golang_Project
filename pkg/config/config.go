@@ -48,6 +48,7 @@ var (
 	Date      *string
 	Operation *string
 	Query     *string
+	Testcase  *bool
 
 	parsedWeb          bool = false
 	parsedAnalysisTool bool = false
@@ -80,6 +81,7 @@ func ConfigureAnalysisTool() {
 		Date = flag.String("date", time.Now().Format("2006-01-02"), "Date of the requested query. Format: YYYY-MM-DD")
 		Operation = flag.String("operation", defaultOperation, "Operation of the requested query. Format: Visitor or Location")
 		Query = flag.String("query", defaultQuery, "The keyword of the requested query.")
+		Testcase = flag.Bool("testcase", false, "Determines, whether output gets printed in the terminal.")
 
 		configureMutual()
 
