@@ -188,7 +188,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 		Location: r.PostFormValue(locationKey),
 	}
 
-	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	address := fmt.Sprintf("%v %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	jour.LogOut(&journal.Credentials{
