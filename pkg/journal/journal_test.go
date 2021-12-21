@@ -1,7 +1,6 @@
 package journal
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"os"
 	"testing"
 	"time"
@@ -10,66 +9,46 @@ import (
 )
 
 var (
-	testLogPath = "../../test-logs"
+	testLogPath = "./test-logs"
 )
 
-func TestLogToJournal(t *testing.T) {
+func TestLogIn(t *testing.T) {
 
-	configure()
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Checkin:  true,
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
 		Timestamp: time.Now(),
 	}
 
-	filePath := returnFilepath()
-	logToJournal(&cred)
-	data, e := os.ReadFile(filePath)
-	check(e)
-	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
-}
+	jour := NewLogFileJournal(testLogPath)
 
-func TestLogInToJournal(t *testing.T) {
+	jour.LogIn(&cred)
 
-	configure()
-	defer cleanupTestLogs()
-
-	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
-		Timestamp: time.Now(),
-	}
-
-	LogInToJournal(&cred)
-
-	filePath := returnFilepath()
-	data, e := os.ReadFile(filePath)
+	data, e := os.ReadFile(jour.logFile)
 
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
-func TestLogOutToJournal(t *testing.T) {
+func TestLogOut(t *testing.T) {
 
-	configure()
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
 		Timestamp: time.Now(),
 	}
 
-	LogOutToJournal(&cred)
+	jour := NewLogFileJournal(testLogPath)
 
-	filePath := returnFilepath()
-	data, e := os.ReadFile(filePath)
+	jour.LogOut(&cred)
+
+	data, e := os.ReadFile(jour.logFile)
 
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
@@ -77,9 +56,9 @@ func TestLogOutToJournal(t *testing.T) {
 
 func TestReturnCreditsToString(t *testing.T) {
 	var cred = Credentials{
-		Address:  "Address",
-		Name:     "Name",
-		Location: "Location",
+		Address:   "Address",
+		Name:      "Name",
+		Location:  "Location",
 		Timestamp: time.Now(),
 	}
 	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
@@ -87,27 +66,24 @@ func TestReturnCreditsToString(t *testing.T) {
 
 func TestLogTestExample(t *testing.T) {
 
-	configure()
 	defer cleanupTestLogs()
 
+	jour := NewLogFileJournal(testLogPath)
+
 	var cred = Credentials{
-		Checkin:  true,
-		Name:     "Name",
-		Address:  "Address",
-		Location: "Location",
+		Checkin:   true,
+		Name:      "Name",
+		Address:   "Address",
+		Location:  "Location",
 		Timestamp: time.Now(),
 	}
 	for i := 0; i < 20; i++ {
-		LogInToJournal(&cred)
-		LogOutToJournal(&cred)
+		jour.LogIn(&cred)
+		jour.LogOut(&cred)
 	}
 }
 
-func configure() {
-	config.LogPath = &testLogPath
-}
-
 func cleanupTestLogs() {
-	//err := os.RemoveAll(testLogPath)
-	//check(err)
+	err := os.RemoveAll(testLogPath)
+	check(err)
 }

@@ -1,7 +1,6 @@
 package qrweb
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/token"
 	"fmt"
@@ -18,6 +17,11 @@ import (
 var (
 	qrTemplate, locsTemplate *template.Template
 	checkinUrls              map[location.Location]string
+	QrCodePath               string
+	RefreshTime              int
+	CheckinPort              int
+
+	locationStore *location.LocationStore
 )
 
 type qrCodePageData struct {
@@ -31,13 +35,26 @@ type locationsPageData struct {
 	Url      string
 }
 
+type QrMuxCfg struct {
+	TemplatePath string
+	QrCodePath   string
+	RefreshTime  int
+	CheckInPort  int
+}
+
+func Setup(locStore *location.LocationStore, cfg QrMuxCfg) {
+	parseTemplates(cfg.TemplatePath)
+	locationStore = locStore
+	QrCodePath = cfg.QrCodePath
+	RefreshTime = cfg.RefreshTime
+	CheckinPort = cfg.CheckInPort
+}
+
 func Mux() http.Handler {
-	parseTemplates(*config.TemplatePath)
-	location.ReadLocations(*config.LocationFilePath)
 	go reloadQR()
 
 	mux := http.NewServeMux()
-	mux.Handle("/qr-codes/", http.StripPrefix("/qr-codes/", http.FileServer(http.Dir(*config.QrCodePath))))
+	mux.Handle("/qr-codes/", http.StripPrefix("/qr-codes/", http.FileServer(http.Dir(QrCodePath))))
 	// mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/qr", handleQR)
@@ -54,10 +71,10 @@ func parseTemplates(templateDir string) {
 func handleQR(w http.ResponseWriter, r *http.Request) {
 	loc := location.Location(r.URL.Query().Get("location"))
 
-	if location.Validate(loc) {
+	if locationStore.Validate(loc) {
 
 		data := qrCodePageData{
-			RefreshTime: *config.RefreshTime,
+			RefreshTime: RefreshTime,
 			Location:    string(loc),
 			CheckInUrl:  checkinUrls[loc],
 		}
@@ -66,7 +83,7 @@ func handleQR(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLocations(w http.ResponseWriter, r *http.Request) {
-	locs := location.Locations
+	locs := locationStore.Locations
 
 	data := make([]locationsPageData, len(locs))
 
@@ -84,23 +101,23 @@ func reloadQR() {
 	checkinUrls = make(map[location.Location]string)
 
 	createUrl()
-	ticker := time.NewTicker(time.Duration(*config.RefreshTime * 1000000000))
+	ticker := time.NewTicker(time.Duration(RefreshTime * 1000000000))
 	for range ticker.C {
 		createUrl()
 	}
 }
 
 func createUrl() {
-	for _, loc := range location.Locations {
+	for _, loc := range locationStore.Locations {
 		url := fmt.Sprintf("https://localhost:%v/checkin?token=%v&location=%v",
-			*config.CheckinPort,
+			CheckinPort,
 			url.QueryEscape(string(token.CreateToken(loc))),
 			url.QueryEscape(string(loc)),
 		)
-		if _, err := os.Stat(*config.QrCodePath); os.IsNotExist(err) {
-			os.MkdirAll(*config.QrCodePath, 0755)
+		if _, err := os.Stat(QrCodePath); os.IsNotExist(err) {
+			os.MkdirAll(QrCodePath, 0755)
 		}
-		qrcode.WriteFile(url, qrcode.Medium, 256, path.Join(*config.QrCodePath, string(loc)+".jpg"))
+		qrcode.WriteFile(url, qrcode.Medium, 256, path.Join(QrCodePath, string(loc)+".jpg"))
 		checkinUrls[loc] = url
 	}
 }

@@ -1,7 +1,6 @@
 package checkinweb
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/person"
@@ -47,19 +46,30 @@ var (
 	checkInTemplate    *template.Template
 	checkedInTemplate  *template.Template
 	checkedOutTemplate *template.Template
+
+	jour          journal.Journal
+	personStore   *person.CookieStore
+	locationStore *location.LocationStore
 )
+
+type CheckInMuxCfg struct {
+	TempaltePath   string
+	CookieLifetime int
+}
+
+func Setup(j journal.Journal, locStore *location.LocationStore, cfg *CheckInMuxCfg) {
+	jour = j
+	parseTemplates(cfg.TempaltePath)
+	personStore = person.NewCookieStore(cfg.CookieLifetime)
+	locationStore = locStore
+}
 
 func Mux() http.Handler {
 	mux := http.NewServeMux()
 
-	parseTemplates(*config.TemplatePath)
-
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkedin", checkedInHandler)
 	mux.HandleFunc("/checkedout", checkedOutHandler)
-
-	// fs := http.FileServer(http.Dir("web/static"))
-	// mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	return mux
 }
@@ -87,7 +97,7 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	invalid := r.URL.Query().Has("invalid_input")
 
 	// read saved person from cookies
-	pers := person.ReadFromCookies(r)
+	pers := personStore.ReadFromCookies(r)
 
 	data := CheckInPageData{
 		Person:       *pers,
@@ -120,13 +130,13 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	loc := location.Location(r.PostFormValue(locationKey))
 
 	// validate location
-	if !location.Validate(loc) {
+	if !locationStore.Validate(loc) {
 		http.Error(rw,
 			http.StatusText(http.StatusBadRequest)+"not a valid location",
 			http.StatusBadRequest)
 	}
 
-	person.SaveToCookies(rw, &p)
+	personStore.SaveToCookies(rw, &p)
 
 	// validate Person input
 
@@ -147,7 +157,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
-	journal.LogInToJournal(&journal.Credentials{
+	jour.LogIn(&journal.Credentials{
 		Checkin:   true,
 		Name:      name,
 		Address:   address,
@@ -178,7 +188,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
-	journal.LogOutToJournal(&journal.Credentials{
+	jour.LogOut(&journal.Credentials{
 		Checkin:   false,
 		Name:      name,
 		Address:   address,

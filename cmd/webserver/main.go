@@ -3,6 +3,8 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/checkinweb"
 	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/pkg/journal"
+	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/qrweb"
 	"fmt"
 	"log"
@@ -13,6 +15,21 @@ import (
 func main() {
 	config.ConfigureWeb()
 
+	jour := journal.NewLogFileJournal(*config.LogPath)
+	locationStore := location.NewLocationStore(*config.LocationFilePath)
+
+	checkinMuxCfg := checkinweb.CheckInMuxCfg{
+		TempaltePath:   *config.TemplatePath,
+		CookieLifetime: *config.CookieLifetime,
+	}
+
+	qrMuxCfg := qrweb.QrMuxCfg{
+		TemplatePath: *config.TemplatePath,
+		QrCodePath:   *config.QrCodePath,
+		RefreshTime:  *config.RefreshTime,
+		CheckInPort:  *config.CheckinPort,
+	}
+
 	var wg sync.WaitGroup
 
 	// run web server for checkin/checkout
@@ -22,6 +39,8 @@ func main() {
 		fmt.Printf("Starting server for checkin at port %v\n", *config.CheckinPort)
 
 		addr := fmt.Sprintf("localhost:%v", *config.CheckinPort)
+
+		checkinweb.Setup(jour, locationStore, &checkinMuxCfg)
 
 		err := http.ListenAndServeTLS(addr, *config.CertificateFilePath, *config.KeyFilePath, checkinweb.Mux())
 		if err != nil {
@@ -38,6 +57,8 @@ func main() {
 		fmt.Printf("Starting server for qr-codes at port %v\n", *config.QRCodePort)
 
 		addr := fmt.Sprintf("localhost:%v", *config.QRCodePort)
+
+		qrweb.Setup(locationStore, qrMuxCfg)
 
 		err := http.ListenAndServeTLS(addr, *config.CertificateFilePath, *config.KeyFilePath, qrweb.Mux())
 		if err != nil {

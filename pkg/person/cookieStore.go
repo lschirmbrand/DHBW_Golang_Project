@@ -1,7 +1,6 @@
 package person
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"encoding/base64"
 	"net/http"
 	"time"
@@ -15,34 +14,42 @@ const (
 	CityKey      = "city"
 )
 
-func SaveToCookies(rw http.ResponseWriter, p *P) {
+type CookieStore struct {
+	cookieLifetime time.Duration
+}
 
-	lifetime := time.Hour * time.Duration(*config.CookieLifetime)
+func NewCookieStore(cookieLifeSeconds int) *CookieStore {
+	return &CookieStore{
+		cookieLifetime: time.Hour * time.Duration(cookieLifeSeconds),
+	}
+}
+
+func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *P) {
 
 	firstNameCookie := http.Cookie{
 		Name:    FirstNameKey,
 		Value:   encodeToBase64(p.Firstname),
-		Expires: time.Now().Add(lifetime),
+		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	lastNameCookie := http.Cookie{
 		Name:    LastNameKey,
 		Value:   encodeToBase64(p.Lastname),
-		Expires: time.Now().Add(lifetime),
+		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	streetCookie := http.Cookie{
 		Name:    StreetKey,
 		Value:   encodeToBase64(p.Street),
-		Expires: time.Now().Add(lifetime),
+		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	plzCookie := http.Cookie{
 		Name:    PlzKey,
 		Value:   encodeToBase64(p.PLZ),
-		Expires: time.Now().Add(lifetime),
+		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	cityCookie := http.Cookie{
 		Name:    CityKey,
 		Value:   encodeToBase64(p.City),
-		Expires: time.Now().Add(lifetime),
+		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 
 	http.SetCookie(rw, &firstNameCookie)
@@ -52,7 +59,7 @@ func SaveToCookies(rw http.ResponseWriter, p *P) {
 	http.SetCookie(rw, &cityCookie)
 }
 
-func ReadFromCookies(r *http.Request) *P {
+func (cs CookieStore) ReadFromCookies(r *http.Request) *P {
 	p := P{
 		Firstname: "",
 		Lastname:  "",
