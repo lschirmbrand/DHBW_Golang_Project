@@ -39,7 +39,7 @@ func exportToCSVFile(results *[]string, selector string, operation Operation, fi
 }
 */
 func buildFileLogPath(date string) string {
-	return path.Join(*config.LogPath, "log-"+date+".txt")
+	return path.Join(*config.LogPath, "logs-"+date+".txt")
 }
 
 func buildFileCSVPath(operation Operation, selector string) string {

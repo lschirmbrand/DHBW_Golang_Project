@@ -14,6 +14,7 @@ import (
 )
 
 func TestReadDataFromFile(t *testing.T) {
+	config.ConfigureAnalysisTool()
 	in := "value1-x-y-z;\nvalue2.,!?;\nvalue3\t;\n"
 	expected := strings.Split(in, "\n")
 	filePath := filepath.Join("../../logs/temporaryForTest.txt")
@@ -74,13 +75,15 @@ func TestExportToCSVFile(t *testing.T) {
 }
 
 func TestBuildFileLogPath(t *testing.T) {
+	config.ConfigureAnalysisTool()
 	in := time.Now().Format(config.DATEFORMAT)
 	out := buildFileLogPath(in)
-	expected := "logs/log-" + in + ".txt"
+	expected := "logs/logs-" + in + ".txt"
 	assert.EqualValues(t, expected, out)
 }
 
 func TestBuildFileCSVPath(t *testing.T) {
+	config.ConfigureAnalysisTool()
 	out := buildFileCSVPath("operation", "selector")
 	expected := "logs/export-operation_selector.csv"
 	assert.EqualValues(t, expected, out)

@@ -2,7 +2,6 @@ package journal
 
 import (
 	"DHBW_Golang_Project/pkg/config"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -20,7 +19,7 @@ func TestLogToJournal(t *testing.T) {
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Login:    true,
+		Checkin:  true,
 		Address:  "Address",
 		Name:     "Name",
 		Location: "Location",
@@ -30,13 +29,6 @@ func TestLogToJournal(t *testing.T) {
 	filePath := returnFilepath()
 	logToJournal(&cred)
 	data, e := os.ReadFile(filePath)
-
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
@@ -58,12 +50,6 @@ func TestLogInToJournal(t *testing.T) {
 	filePath := returnFilepath()
 	data, e := os.ReadFile(filePath)
 
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKIN,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
@@ -85,12 +71,6 @@ func TestLogOutToJournal(t *testing.T) {
 	filePath := returnFilepath()
 	data, e := os.ReadFile(filePath)
 
-	defer func(name string) {
-		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(filePath)
 	check(e)
 	assert.EqualValues(t, string(data), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
@@ -111,7 +91,7 @@ func TestLogTestExample(t *testing.T) {
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
-		Login:    true,
+		Checkin:  true,
 		Name:     "Name",
 		Address:  "Address",
 		Location: "Location",
