@@ -154,7 +154,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
-	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	address := fmt.Sprintf("%v %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
 	jour.LogIn(&journal.Credentials{
