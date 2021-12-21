@@ -46,12 +46,13 @@ func TestExportToCSVFile(t *testing.T) {
 	results := []string{
 		"location1", "location2", "location3", "location4", "location5",
 	}
-	selector := "TestSelector"
-	operation := VISITOR
+
+	*config.Operation = string(VISITOR)
+	*config.Query = "TestSelector"
 
 	// Tests use path relative from own path
-	filePath := "../../" + buildFileCSVPath(operation, selector)
-	csvHeader := createCSVHeader(string(operation), Operation(selector))
+	filePath := "../../" + buildFileCSVPath()
+	csvHeader := createCSVHeader()
 	writeSessionsToCSV(&results, filePath, csvHeader)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
@@ -85,24 +86,31 @@ func TestBuildFileLogPath(t *testing.T) {
 
 func TestBuildFileCSVPath(t *testing.T) {
 	config.ConfigureAnalysisTool()
-	out := buildFileCSVPath("operation", "selector")
+	*config.Operation = "operation"
+	*config.Query = "selector"
+	out := buildFileCSVPath()
 	expected := "logs/export-operation_selector.csv"
 	assert.EqualValues(t, expected, out)
 }
 
 func TestCreateCSVHeader(t *testing.T){
-	selector := "Selector"
-	out := createCSVHeader(selector, LOCATION)
-	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, "Results for the query: " + string(LOCATION) + " = " + selector, (*out)[0])
+	config.ConfigureAnalysisTool()
+	*config.Query = "Selector"
 
-	out = createCSVHeader(selector, VISITOR)
+	*config.Operation = string(LOCATION)
+	out := createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, "Results for the query: " + string(VISITOR) + " = " + selector, (*out)[0])
+	assert.EqualValues(t, "Results for the query: " + string(LOCATION) + " = " + *config.Query, (*out)[0])
 
-	out = createCSVHeader(selector, CONTACT)
+	*config.Operation = string(VISITOR)
+	out = createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, string(CONTACT) + " for the user: " + selector, (*out)[0])
+	assert.EqualValues(t, "Results for the query: " + string(VISITOR) + " = " + *config.Query, (*out)[0])
+
+	*config.Operation = string(CONTACT)
+	out = createCSVHeader()
+	assert.EqualValues(t, 1, len(*out))
+	assert.EqualValues(t, string(CONTACT) + " for the user: " + *config.Query, (*out)[0])
 }
 
 func TestToSlice(t *testing.T){

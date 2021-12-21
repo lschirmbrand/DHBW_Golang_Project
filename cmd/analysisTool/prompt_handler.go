@@ -1,12 +1,35 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
 	"bufio"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
 )
+
+func exportLocations(qryResults *[]string){
+	if assertQueryExport(qryResults) {
+		filePath := buildFileCSVPath()
+		csvHeader := createCSVHeader()
+		writeSessionsToCSV(qryResults, filePath, csvHeader)
+	}
+}
+
+func exportVisitors(qryResults *[]string){
+	fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
+	for _, out := range *qryResults {
+		fmt.Println(out)
+	}
+	fmt.Print("\n")
+
+	if assertQueryExport(qryResults) {
+		filePath := buildFileCSVPath()
+		csvHeader := createCSVHeader()
+		writeSessionsToCSV(qryResults, filePath, csvHeader)
+	}
+}
 
 func assertQueryExport(s *[]string) bool {
 	qLen := queryLengthHandler(*s)
@@ -25,7 +48,7 @@ func assertQueryExport(s *[]string) bool {
 
 func exportHandler(length int) bool {
 	fmt.Println("The requested query resulted in ", length, " elements.")
-	fmt.Println("Do you want to export the query? [y/n]")
+	fmt.Println("Do you want to additionally export the query to csv? [y/n]")
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		input, e := reader.ReadString('\n')

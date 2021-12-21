@@ -14,8 +14,8 @@ func buildFileLogPath(date string) string {
 	return path.Join(*config.LogPath, "logs-"+date+".txt")
 }
 
-func buildFileCSVPath(operation Operation, selector string) string {
-	return path.Join(*config.LogPath, "export-"+string(operation)+"_"+selector+".csv")
+func buildFileCSVPath() string {
+	return path.Join(*config.LogPath, "export-"+ *config.Operation +"_"+*config.Query+".csv")
 }
 
 
@@ -70,18 +70,18 @@ func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath strin
 	fmt.Println("The query-result was exported to: " + filePath)
 }
 
-func createCSVHeader(selector string, operation Operation) *[]string {
+func createCSVHeader() *[]string {
 	var infix string
-	switch operation {
-	case LOCATION:
+	switch *config.Operation {
+	case string(LOCATION):
 		fallthrough
-	case VISITOR:
-		infix = "Results for the query: " + string(operation) + " = "
-	case CONTACT:
-		infix = string(operation) + " for the user: "
+	case string(VISITOR):
+		infix = "Results for the query: " + *config.Operation + " = "
+	case string(CONTACT):
+		infix = *config.Operation + " for the user: "
 	}
 	csvHeader := make([]string, 1)
-	csvHeader[0] = infix + selector
+	csvHeader[0] = infix + *config.Query
 	return &csvHeader
 }
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
+func checkFlagFunctionality() (bool, *[]string) {
 	flagsOk := true
 	fails := make([]string, 0)
 	ok, _ := validateDateInput(*config.Date)
@@ -21,11 +21,11 @@ func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
 	} else {
 		switch strings.ToLower(*config.Operation) {
 		case strings.ToLower(string(VISITOR)):
-			*selectedOperation = VISITOR
+			*config.Operation = string(VISITOR)
 		case strings.ToLower(string(CONTACT)):
-			*selectedOperation = CONTACT
+			*config.Operation = string(CONTACT)
 		default:
-			*selectedOperation = LOCATION
+			*config.Operation = string(LOCATION)
 		}
 	}
 	ok = validateQueryInput(*config.Query)
