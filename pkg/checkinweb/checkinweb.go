@@ -1,7 +1,6 @@
 package checkinweb
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/journal"
 	"DHBW_Golang_Project/pkg/location"
 	"DHBW_Golang_Project/pkg/person"
@@ -34,32 +33,46 @@ type CheckedoutPageData struct {
 	Location string
 }
 
+type contextKey string
+
 const (
-	locationKey  = "location"
-	firstNameKey = "firstName"
-	lastNameKey  = "lastName"
-	streetKey    = "street"
-	plzKey       = "plz"
-	cityKey      = "city"
+	locationContextKey = contextKey("location")
+	tokenContextKey    = contextKey("token")
+)
+
+const (
+	locationKey = "location"
+	tokenKey    = "token"
 )
 
 var (
 	checkInTemplate    *template.Template
 	checkedInTemplate  *template.Template
 	checkedOutTemplate *template.Template
+
+	jour          journal.Journal
+	personStore   *person.CookieStore
+	locationStore *location.LocationStore
 )
+
+type CheckInMuxCfg struct {
+	TempaltePath   string
+	CookieLifetime int
+}
+
+func Setup(j journal.Journal, locStore *location.LocationStore, cfg *CheckInMuxCfg) {
+	jour = j
+	parseTemplates(cfg.TempaltePath)
+	personStore = person.NewCookieStore(cfg.CookieLifetime)
+	locationStore = locStore
+}
 
 func Mux() http.Handler {
 	mux := http.NewServeMux()
 
-	parseTemplates(*config.TemplatePath)
-
 	mux.HandleFunc("/checkin", tokenValidationWrapper(token.Validate, checkInHandler))
 	mux.HandleFunc("/checkedin", checkedInHandler)
 	mux.HandleFunc("/checkedout", checkedOutHandler)
-
-	// fs := http.FileServer(http.Dir("web/static"))
-	// mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	return mux
 }
@@ -81,13 +94,13 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// read location and token from request context
-	loc := r.Context().Value(locationKey).(location.Location)
-	tok := r.Context().Value("token").(token.Token)
+	loc := r.Context().Value(locationContextKey).(location.Location)
+	tok := r.Context().Value(tokenContextKey).(token.Token)
 
 	invalid := r.URL.Query().Has("invalid_input")
 
 	// read saved person from cookies
-	pers := person.ReadFromCookies(r)
+	pers := personStore.ReadFromCookies(r)
 
 	data := CheckInPageData{
 		Person:       *pers,
@@ -120,18 +133,18 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	loc := location.Location(r.PostFormValue(locationKey))
 
 	// validate location
-	if !location.Validate(loc) {
+	if !locationStore.Validate(loc) {
 		http.Error(rw,
 			http.StatusText(http.StatusBadRequest)+"not a valid location",
 			http.StatusBadRequest)
 	}
 
-	person.SaveToCookies(rw, &p)
+	personStore.SaveToCookies(rw, &p)
 
 	// validate Person input
 
 	if !validateFormInput(p) {
-		token := r.PostFormValue("token")
+		token := r.PostFormValue(tokenKey)
 		url := fmt.Sprintf("/checkin?location=%v&token=%v&invalid_input", url.QueryEscape(string(loc)), url.QueryEscape(token))
 
 		http.Redirect(rw, r, url, http.StatusSeeOther)
@@ -144,10 +157,10 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 		Time:     time.Now().Format(time.RFC3339),
 	}
 
-	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	address := fmt.Sprintf("%v %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
-	journal.LogInToJournal(&journal.Credentials{
+	jour.LogIn(&journal.Credentials{
 		Checkin:   true,
 		Name:      name,
 		Address:   address,
@@ -175,10 +188,10 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 		Location: r.PostFormValue(locationKey),
 	}
 
-	address := fmt.Sprintf("%v, %v %v", p.Street, p.PLZ, p.City)
+	address := fmt.Sprintf("%v %v %v", p.Street, p.PLZ, p.City)
 	name := fmt.Sprintf("%v %v", p.Firstname, p.Lastname)
 
-	journal.LogOutToJournal(&journal.Credentials{
+	jour.LogOut(&journal.Credentials{
 		Checkin:   false,
 		Name:      name,
 		Address:   address,
@@ -192,16 +205,15 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		t, _ := url.QueryUnescape(r.URL.Query().Get("token"))
-		l, _ := url.QueryUnescape(r.URL.Query().Get("location"))
+		t, _ := url.QueryUnescape(r.URL.Query().Get(tokenKey))
+		l, _ := url.QueryUnescape(r.URL.Query().Get(locationKey))
 
 		tok := token.Token(t)
 		loc := location.Location(l)
 
 		if valid := validator(tok, loc); valid {
-			ctx := context.WithValue(r.Context(), locationKey, loc)
-			ctx = context.WithValue(ctx, "token", tok)
-
+			ctx := context.WithValue(r.Context(), locationContextKey, loc)
+			ctx = context.WithValue(ctx, tokenContextKey, tok)
 			handler(w, r.WithContext(ctx))
 		} else {
 			http.Error(w,

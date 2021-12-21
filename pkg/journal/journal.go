@@ -1,18 +1,22 @@
 package journal
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
-	"flag"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"time"
 )
 
+type Journal interface {
+	LogIn(cred *Credentials) bool
+	LogOut(cred *Credentials) bool
+}
+
 type Credentials struct {
-	Checkin bool
-	Name    string
+	Checkin   bool
+	Name      string
 	Address   string
 	Location  location.Location
 	Timestamp time.Time
@@ -21,9 +25,17 @@ type Credentials struct {
 const DATEFORMAT = "2006-01-02"
 const DATEFORMATWITHTIME = "02-01-2006 15:04:05"
 
-var (
-	LogFilename *string = flag.String("filename", time.Now().Format(DATEFORMAT), "The filename of the log-file.")
-)
+type LogFileJournal struct {
+	logDir  string
+	logFile string
+}
+
+func NewLogFileJournal(logDirName string) *LogFileJournal {
+	return &LogFileJournal{
+		logDir:  logDirName,
+		logFile: path.Join(logDirName, "logs-"+time.Now().Format(DATEFORMAT)+".txt"),
+	}
+}
 
 func check(e error) bool {
 	if e != nil {
@@ -33,26 +45,25 @@ func check(e error) bool {
 	return true
 }
 
-func LogOutToJournal(cred *Credentials) bool {
+func (j LogFileJournal) LogOut(cred *Credentials) bool {
 	cred.Checkin = false
-	ok := logToJournal(cred)
+	ok := j.log(cred)
 	return ok
 }
 
-func LogInToJournal(cred *Credentials) bool {
+func (j LogFileJournal) LogIn(cred *Credentials) bool {
 	cred.Checkin = true
-	ok := logToJournal(cred)
+	ok := j.log(cred)
 	return ok
 }
 
-func logToJournal(cred *Credentials) bool {
+func (j LogFileJournal) log(cred *Credentials) bool {
 	logmsg := buildCredits(cred)
-	filePath := returnFilepath()
-	if _, err := os.Stat(*config.LogPath); os.IsNotExist(err) {
-		os.MkdirAll(*config.LogPath, 0755)
+	if _, err := os.Stat(j.logDir); os.IsNotExist(err) {
+		os.MkdirAll(j.logDir, 0755)
 	}
 
-	f, e := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, e := os.OpenFile(j.logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
 	if !check(e) {
 		return false
@@ -67,10 +78,6 @@ func logToJournal(cred *Credentials) bool {
 
 	_, e = f.WriteString(logmsg)
 	return check(e)
-}
-
-func returnFilepath() string {
-	return *config.LogPath + "/logs-" + *LogFilename + ".txt"
 }
 
 func buildCredits(credits *Credentials) string {

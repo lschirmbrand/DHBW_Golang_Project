@@ -1,7 +1,6 @@
 package qrweb
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"DHBW_Golang_Project/pkg/location"
 	"net/http"
 	"net/http/httptest"
@@ -11,12 +10,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQrHandler(t *testing.T) {
-	config.ConfigureWeb()
-	parseTemplates("../../web/templates")
-	location.ReadLocations("../../assets/locations.xml")
+var st *location.LocationStore
 
-	for _, actLocation := range location.Locations {
+func SetupTest() {
+	st = location.NewLocationStore("./test_assets/locations.xml")
+
+	Setup(st, QrMuxCfg{
+		TemplatePath: "../../web/templates",
+		QrCodePath:   "./test_assets/qr-codes",
+		RefreshTime:  2,
+		CheckInPort:  8443,
+	})
+}
+
+func TestQrHandler(t *testing.T) {
+
+	SetupTest()
+
+	for _, actLocation := range st.Locations {
 		req, err := http.NewRequest("GET", "http://localhost:8142/qr?location="+string(actLocation), nil)
 		assert.NoError(t, err)
 
@@ -29,10 +40,7 @@ func TestQrHandler(t *testing.T) {
 }
 
 func TestMux(t *testing.T) {
-	config.ConfigureWeb()
-	// overwrite template dir path
-	templatePath := "../../web/templates"
-	config.TemplatePath = &templatePath
+	SetupTest()
 
 	mux := Mux()
 	server := httptest.NewServer(mux)
@@ -46,13 +54,7 @@ func TestMux(t *testing.T) {
 }
 
 func TestQrReload(t *testing.T) {
-	// overwrite path to location file
-	locationFilePath := "../../assets/locations.xml"
-	config.LocationFilePath = &locationFilePath
-
-	// overwrite refreshTime
-	refreshTime := 2
-	config.RefreshTime = &refreshTime
+	SetupTest()
 
 	go reloadQR()
 

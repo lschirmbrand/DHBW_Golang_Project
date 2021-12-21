@@ -1,7 +1,6 @@
 package person
 
 import (
-	"DHBW_Golang_Project/pkg/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,7 +9,8 @@ import (
 )
 
 func TestSavePersonToCookies(t *testing.T) {
-	config.ConfigureWeb()
+
+	store := NewCookieStore(60)
 
 	recorder := httptest.NewRecorder()
 
@@ -22,7 +22,7 @@ func TestSavePersonToCookies(t *testing.T) {
 		City:      "Musterstadt",
 	}
 
-	SaveToCookies(recorder, &p)
+	store.SaveToCookies(recorder, &p)
 
 	cookies := recorder.Result().Cookies()
 
@@ -82,7 +82,9 @@ func TestReadPersonFromCookies(t *testing.T) {
 	req.AddCookie(&plzCookie)
 	req.AddCookie(&cityCookie)
 
-	p1 := ReadFromCookies(req)
+	store := NewCookieStore(60)
+
+	p1 := store.ReadFromCookies(req)
 
 	assert.Equal(t, p, *p1)
 }
