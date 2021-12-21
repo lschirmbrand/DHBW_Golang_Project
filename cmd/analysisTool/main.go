@@ -53,7 +53,9 @@ func startAnalyticalToolDialog() bool {
 	// Checks whether the Flags are set up right
 	if ok, fails := checkFlagFunctionality(); !ok {
 		for i := range *fails {
-			fmt.Println((*fails)[i])
+			if !*config.Testcase {
+				fmt.Println((*fails)[i])
+			}
 			return false
 		}
 	} else {

@@ -46,10 +46,15 @@ func writeSessionsToCSV(results *[]string, csvHeader *[]string, filePath string)
 	check(e)
 	e = writer.Write(*results)
 	check(e)
-	fmt.Println("The query-result was exported to: " + filePath)
+	if !(*config.Testcase) {
+		fmt.Println("The query-result was exported to: " + filePath)
+	}
 }
 
 func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath string) {
+	if _, err := os.Stat(*config.LogPath); os.IsNotExist(err) {
+		os.MkdirAll(*config.LogPath, 0755)
+	}
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()
@@ -62,12 +67,16 @@ func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath strin
 	for _, contact := range *contacts {
 		row := contact.toSlice()
 		if err := writer.Write(*row); err != nil {
-			fmt.Println("Failed to write, aborting!")
+			if !*config.Testcase{
+				fmt.Println("Failed to write, aborting!")
+			}
 			return
 		}
 
 	}
-	fmt.Println("The query-result was exported to: " + filePath)
+	if !*config.Testcase {
+		fmt.Println("The query-result was exported to: " + filePath)
+	}
 }
 
 func createCSVHeader() *[]string {
@@ -78,7 +87,7 @@ func createCSVHeader() *[]string {
 	case string(VISITOR):
 		infix = "Results for the query: " + *config.Operation + " = "
 	case string(CONTACT):
-		infix = *config.Operation + " for the user: "
+		infix = *config.Operation + "s for the user: "
 	}
 	csvHeader := make([]string, 1)
 	csvHeader[0] = infix + *config.Query

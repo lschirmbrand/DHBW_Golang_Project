@@ -1,11 +1,19 @@
 package main
 
 import (
+	"DHBW_Golang_Project/pkg/config"
+	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	testExportPath = "./test-export"
 )
 
 func TestAssertQueryExport(t *testing.T) {
@@ -31,4 +39,34 @@ func checkErrorForTest(err error) {
 	} else {
 		return
 	}
+}
+
+func TestExportContacts(t *testing.T){
+
+	defer cleanupTestLogs()
+
+	config.ConfigureAnalysisTool()
+	*config.LogPath = testExportPath
+	*config.Testcase = true
+	*config.Query = "Selector"
+	*config.Operation = string(CONTACT)
+
+	contactA := contact{
+		session: sessionB,
+		duration: 60*time.Hour,
+	}
+
+	contacts := make([]contact, 1)
+	contacts[0] = contactA
+
+	exportContacts(&contacts)
+	text, err := ioutil.ReadFile(buildFileCSVPath())
+	check(err)
+
+	assert.EqualValues(t, "Contacts for the user: Selector\nNameB,Location,60h0m0s\n", string(text))
+}
+
+func cleanupTestLogs() {
+	err := os.RemoveAll(testExportPath)
+	check(err)
 }
