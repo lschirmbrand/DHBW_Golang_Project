@@ -73,17 +73,20 @@ func startAnalyticalToolDialog() bool {
 		*/
 		switch *config.Operation {
 		case string(CONTACT):
-			contactHandler(sessions)
+			contacts := contactHandler(sessions)
+			exportContacts(contacts)
 		case string(VISITOR):
-			visitorHandler(sessions)
+			locations := visitorHandler(sessions)
+			exportLocations(locations)
 		default:
-			locationHandler(sessions)
+			visitors := locationHandler(sessions)
+			exportVisitors(visitors)
 		}
 	}
 	return false
 }
 
-func contactHandler(sessions *[]session){
+func contactHandler(sessions *[]session) *[]contact{
 	contacts := make([]contact, 0)
 	for _, entry := range *sessions {
 		if strings.EqualFold(entry.Name, *config.Query) {
@@ -91,24 +94,17 @@ func contactHandler(sessions *[]session){
 			contacts = append(contacts, *newContacts...)
 		}
 	}
-
-	if exportHandler(len(contacts)) {
-		filePath := buildFileCSVPath()
-		csvHeader := createCSVHeader()
-		writeContactsToCSV(&contacts, csvHeader, filePath)
-	}
+	return &contacts
 }
 
-func visitorHandler(sessions *[]session){
-	var qryResults *[]string
-	qryResults = analyseLocationsByVisitor(*config.Query, sessions)
-	exportLocations(qryResults)
+func visitorHandler(sessions *[]session) *[]string {
+	qryResults := analyseLocationsByVisitor(*config.Query, sessions)
+	return qryResults
 }
 
-func locationHandler(sessions *[]session){
-	var qryResults *[]string
-	qryResults = analyseVisitorsByLocation(*config.Query, sessions)
-	exportVisitors(qryResults)
+func locationHandler(sessions *[]session) *[]string {
+	qryResults := analyseVisitorsByLocation(*config.Query, sessions)
+	return qryResults
 }
 
 func credentialsToSession(creds *[]journal.Credentials) *[]session {

@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+func exportContacts(contacts *[]contact){
+	if exportHandler(len(*contacts)) {
+		filePath := buildFileCSVPath()
+		csvHeader := createCSVHeader()
+		writeContactsToCSV(contacts, csvHeader, filePath)
+	}
+}
+
 func exportLocations(qryResults *[]string){
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
