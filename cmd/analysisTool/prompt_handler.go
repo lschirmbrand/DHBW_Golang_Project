@@ -21,7 +21,7 @@ func exportLocations(qryResults *[]string){
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
-		writeSessionsToCSV(qryResults, filePath, csvHeader)
+		writeSessionsToCSV(qryResults, csvHeader, filePath)
 	}
 }
 
@@ -35,7 +35,7 @@ func exportVisitors(qryResults *[]string){
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
-		writeSessionsToCSV(qryResults, filePath, csvHeader)
+		writeSessionsToCSV(qryResults, csvHeader, filePath)
 	}
 }
 

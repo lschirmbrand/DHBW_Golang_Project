@@ -35,7 +35,7 @@ func readDataFromFile(filePath string) *[]string {
 	return &out
 }
 
-func writeSessionsToCSV(results *[]string, filePath string, csvHeader *[]string) {
+func writeSessionsToCSV(results *[]string, csvHeader *[]string, filePath string) {
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()

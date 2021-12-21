@@ -53,7 +53,7 @@ func TestExportToCSVFile(t *testing.T) {
 	// Tests use path relative from own path
 	filePath := "../../" + buildFileCSVPath()
 	csvHeader := createCSVHeader()
-	writeSessionsToCSV(&results, filePath, csvHeader)
+	writeSessionsToCSV(&results, csvHeader, filePath)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
 
