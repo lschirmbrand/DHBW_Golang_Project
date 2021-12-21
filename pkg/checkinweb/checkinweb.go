@@ -33,13 +33,16 @@ type CheckedoutPageData struct {
 	Location string
 }
 
+type contextKey string
+
 const (
-	locationKey  = "location"
-	firstNameKey = "firstName"
-	lastNameKey  = "lastName"
-	streetKey    = "street"
-	plzKey       = "plz"
-	cityKey      = "city"
+	locationContextKey = contextKey("location")
+	tokenContextKey    = contextKey("token")
+)
+
+const (
+	locationKey = "location"
+	tokenKey    = "token"
 )
 
 var (
@@ -91,8 +94,8 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// read location and token from request context
-	loc := r.Context().Value(locationKey).(location.Location)
-	tok := r.Context().Value("token").(token.Token)
+	loc := r.Context().Value(locationContextKey).(location.Location)
+	tok := r.Context().Value(tokenContextKey).(token.Token)
 
 	invalid := r.URL.Query().Has("invalid_input")
 
@@ -141,7 +144,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 	// validate Person input
 
 	if !validateFormInput(p) {
-		token := r.PostFormValue("token")
+		token := r.PostFormValue(tokenKey)
 		url := fmt.Sprintf("/checkin?location=%v&token=%v&invalid_input", url.QueryEscape(string(loc)), url.QueryEscape(token))
 
 		http.Redirect(rw, r, url, http.StatusSeeOther)
@@ -202,16 +205,15 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		t, _ := url.QueryUnescape(r.URL.Query().Get("token"))
-		l, _ := url.QueryUnescape(r.URL.Query().Get("location"))
+		t, _ := url.QueryUnescape(r.URL.Query().Get(tokenKey))
+		l, _ := url.QueryUnescape(r.URL.Query().Get(locationKey))
 
 		tok := token.Token(t)
 		loc := location.Location(l)
 
 		if valid := validator(tok, loc); valid {
-			ctx := context.WithValue(r.Context(), locationKey, loc)
-			ctx = context.WithValue(ctx, "token", tok)
-
+			ctx := context.WithValue(r.Context(), locationContextKey, loc)
+			ctx = context.WithValue(ctx, tokenContextKey, tok)
 			handler(w, r.WithContext(ctx))
 		} else {
 			http.Error(w,
