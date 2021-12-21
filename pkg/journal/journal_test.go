@@ -108,6 +108,6 @@ func configure() {
 }
 
 func cleanupTestLogs() {
-	//err := os.RemoveAll(testLogPath)
-	//check(err)
+	err := os.RemoveAll(testLogPath)
+	check(err)
 }
