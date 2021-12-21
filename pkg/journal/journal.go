@@ -11,8 +11,8 @@ import (
 )
 
 type Credentials struct {
-	Login     bool
-	Name      string
+	Checkin bool
+	Name    string
 	Address   string
 	Location  location.Location
 	Timestamp time.Time
@@ -34,13 +34,13 @@ func check(e error) bool {
 }
 
 func LogOutToJournal(cred *Credentials) bool {
-	cred.Login = false
+	cred.Checkin = false
 	ok := logToJournal(cred)
 	return ok
 }
 
 func LogInToJournal(cred *Credentials) bool {
-	cred.Login = true
+	cred.Checkin = true
 	ok := logToJournal(cred)
 	return ok
 }
@@ -75,7 +75,7 @@ func returnFilepath() string {
 
 func buildCredits(credits *Credentials) string {
 	var sb strings.Builder
-	switch credits.Login {
+	switch credits.Checkin {
 	case true:
 		sb.WriteString("CHECKIN")
 	default:

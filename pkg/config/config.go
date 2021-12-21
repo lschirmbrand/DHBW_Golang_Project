@@ -15,7 +15,7 @@ const (
 	defaultRefreshTime    = 60
 	defaultCookieLifetime = 24 * 356
 
-	defaultTempaltePath     = "web/templates"
+	defaultTemplatePath     = "web/templates"
 	defaultQrCodePath       = "assets/qr-codes"
 	defaultLocationFilePath = "assets/locations.xml"
 
@@ -29,8 +29,12 @@ const (
 )
 
 var (
+	Hostname    *string
 	CheckinPort *int
 	QRCodePort  *int
+
+	CertificateFilePath *string
+	KeyFilePath         *string
 
 	RefreshTime    *int
 	CookieLifetime *int
@@ -57,7 +61,7 @@ func ConfigureWeb() {
 		RefreshTime = flag.Int("refreshTime", defaultRefreshTime, "refresh time for qr-codes in seconds")
 		CookieLifetime = flag.Int("cookieLifeTime", defaultCookieLifetime, "Lifetime of Cookies in Hours")
 
-		TemplatePath = flag.String("templatePath", defaultTempaltePath, "path to html-template directory")
+		TemplatePath = flag.String("templatePath", defaultTemplatePath, "path to html-template directory")
 		QrCodePath = flag.String("qrCodePath", defaultQrCodePath, "path to save qr-codes")
 		LocationFilePath = flag.String("locationFilePath", defaultLocationFilePath, "path to xml file with locations")
 
@@ -86,5 +90,4 @@ func ConfigureAnalysisTool() {
 
 func configureMutual() {
 	LogPath = flag.String("logPath", defaultLogsPath, "path to logfile directory")
-
 }
