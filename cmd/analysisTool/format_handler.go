@@ -3,7 +3,6 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/config"
 	"regexp"
-	"strings"
 )
 
 func checkFlagFunctionality() (bool, *[]string) {
@@ -18,15 +17,6 @@ func checkFlagFunctionality() (bool, *[]string) {
 	if !ok {
 		flagsOk = false
 		fails = append(fails, "Operation input was incorrect.")
-	} else {
-		switch strings.ToLower(*config.Operation) {
-		case strings.ToLower(string(VISITOR)):
-			*config.Operation = string(VISITOR)
-		case strings.ToLower(string(CONTACT)):
-			*config.Operation = string(CONTACT)
-		default:
-			*config.Operation = string(LOCATION)
-		}
 	}
 	ok = validateQueryInput(*config.Query)
 	if !ok {

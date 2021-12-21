@@ -50,41 +50,65 @@ func main() {
 }
 
 func startAnalyticalToolDialog() bool {
+	// Checks whether the Flags are set up right
 	if ok, fails := checkFlagFunctionality(); !ok {
 		for i := range *fails {
 			fmt.Println((*fails)[i])
 			return false
 		}
 	} else {
+		/*
+			If the flags are set up right, the content
+			of the Logfile will be imported
+		*/
 		fileContent := readDataFromFile(buildFileLogPath(*config.Date))
+		/*
+			The imported content, formatted as logs will
+			be parsed to the session-structure
+		*/
 		sessions := credentialsToSession(contentToCredits(fileContent))
-		if strings.EqualFold(*config.Operation, string(CONTACT)) {
-			contacts := make([]contact, 0)
-			for _, entry := range *sessions {
-				if strings.EqualFold(entry.Name, *config.Query) {
-					newContacts := getOverlaps(&entry, sessions)
-					contacts = append(contacts, *newContacts...)
-				}
-			}
-
-			if exportHandler(len(contacts)) {
-				filePath := buildFileCSVPath()
-				csvHeader := createCSVHeader()
-				writeContactsToCSV(&contacts, csvHeader, filePath)
-			}
-
-		} else {
-			var qryResults *[]string
-			if strings.EqualFold(*config.Operation, string(VISITOR)) {
-				qryResults = analyseLocationsByVisitor(*config.Query, sessions)
-				exportLocations(qryResults)
-			} else {
-				qryResults = analyseVisitorsByLocation(*config.Query, sessions)
-				exportVisitors(qryResults)
-			}
+		/*
+			Switching through the possible Use-Cases
+			for the operations
+		*/
+		switch *config.Operation {
+		case string(CONTACT):
+			contactHandler(sessions)
+		case string(VISITOR):
+			visitorHandler(sessions)
+		default:
+			locationHandler(sessions)
 		}
 	}
 	return false
+}
+
+func contactHandler(sessions *[]session){
+	contacts := make([]contact, 0)
+	for _, entry := range *sessions {
+		if strings.EqualFold(entry.Name, *config.Query) {
+			newContacts := getOverlaps(&entry, sessions)
+			contacts = append(contacts, *newContacts...)
+		}
+	}
+
+	if exportHandler(len(contacts)) {
+		filePath := buildFileCSVPath()
+		csvHeader := createCSVHeader()
+		writeContactsToCSV(&contacts, csvHeader, filePath)
+	}
+}
+
+func visitorHandler(sessions *[]session){
+	var qryResults *[]string
+	qryResults = analyseLocationsByVisitor(*config.Query, sessions)
+	exportLocations(qryResults)
+}
+
+func locationHandler(sessions *[]session){
+	var qryResults *[]string
+	qryResults = analyseVisitorsByLocation(*config.Query, sessions)
+	exportVisitors(qryResults)
 }
 
 func credentialsToSession(creds *[]journal.Credentials) *[]session {
