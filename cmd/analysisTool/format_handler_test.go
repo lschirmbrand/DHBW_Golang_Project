@@ -12,41 +12,40 @@ func TestCheckFlagFunctionality(t *testing.T) {
 	config.Date = &date
 	operation := "Visitor"
 	config.Operation = &operation
-	var selectedOperation Operation
 	query := "QueryWord"
 	config.Query = &query
 
-	res, fails := checkFlagFunctionality(&selectedOperation)
+	res, fails := checkFlagFunctionality()
 	assert.True(t, res)
 	assert.EqualValues(t, 0, len(*fails))
-	assert.EqualValues(t, string(selectedOperation), VISITOR)
+	assert.EqualValues(t, *config.Operation, VISITOR)
 
 	operation = "Location"
-	res, fails = checkFlagFunctionality(&selectedOperation)
+	res, fails = checkFlagFunctionality()
 	assert.True(t, res)
 	assert.EqualValues(t, 0, len(*fails))
-	assert.EqualValues(t, string(selectedOperation), LOCATION)
+	assert.EqualValues(t, *config.Operation, LOCATION)
 
 	operation = "Contact"
-	res, fails = checkFlagFunctionality(&selectedOperation)
+	res, fails = checkFlagFunctionality()
 	assert.True(t, res)
 	assert.EqualValues(t, 0, len(*fails))
-	assert.EqualValues(t, string(selectedOperation), CONTACT)
+	assert.EqualValues(t, *config.Operation, CONTACT)
 
 	date = "2021-13-29"
 	config.Date = &date
-	res, fails = checkFlagFunctionality(&selectedOperation)
+	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
 	assert.EqualValues(t, 1, len(*fails))
 
 	operation = "somethingDifferent"
-	res, fails = checkFlagFunctionality(&selectedOperation)
+	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
 	assert.EqualValues(t, 2, len(*fails))
 
 	query = ""
 	config.Query = &query
-	res, fails = checkFlagFunctionality(&selectedOperation)
+	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
 	assert.EqualValues(t, 3, len(*fails))
 }
