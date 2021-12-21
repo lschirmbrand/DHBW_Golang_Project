@@ -41,52 +41,70 @@ const (
 )
 
 func main() {
+	/*
+		Setting standard flags and overwrite
+		those, which were passed as arguments
+	*/
 	config.ConfigureAnalysisTool()
 	startAnalyticalToolDialog()
 }
 
 func startAnalyticalToolDialog() bool {
-	var selectedOperation Operation
-	if ok, fails := checkFlagFunctionality(&selectedOperation); !ok {
+	// Checks whether the Flags are set up right
+	if ok, fails := checkFlagFunctionality(); !ok {
 		for i := range *fails {
 			fmt.Println((*fails)[i])
 			return false
 		}
 	} else {
+		/*
+			If the flags are set up right, the content
+			of the Logfile will be imported
+		*/
 		fileContent := readDataFromFile(buildFileLogPath(*config.Date))
+		/*
+			The imported content, formatted as logs will
+			be parsed to the session-structure
+		*/
 		sessions := credentialsToSession(contentToCredits(fileContent))
-		if strings.EqualFold(*config.Operation, string(CONTACT)) {
-			contacts := make([]contact, 0)
-			for _, entry := range *sessions {
-				if strings.EqualFold(entry.Name, *config.Query) {
-					newContacts := getOverlaps(&entry, sessions)
-					contacts = append(contacts, *newContacts...)
-				}
-			}
-
-			if exportHandler(len(contacts)) {
-				filePath := buildFileCSVPath(selectedOperation, *config.Query)
-				csvHeader := createCSVHeader(*config.Query, selectedOperation)
-				writeContactsToCSV(&contacts, csvHeader, filePath)
-			}
-
-		} else {
-			var qryResults *[]string
-			if strings.EqualFold(*config.Operation, string(VISITOR)) {
-				qryResults = analyseLocationsByVisitor(*config.Query, sessions)
-			} else {
-				qryResults = analyseVisitorsByLocation(*config.Query, sessions)
-			}
-
-			if assertQueryExport(qryResults) {
-				filePath := buildFileCSVPath(selectedOperation, *config.Query)
-				csvHeader := createCSVHeader(*config.Query, selectedOperation)
-				writeSessionsToCSV(qryResults, filePath, csvHeader)
-				return true
-			}
+		/*
+			Switching through the possible Use-Cases
+			for the operations
+		*/
+		switch *config.Operation {
+		case string(CONTACT):
+			contacts := contactHandler(sessions)
+			exportContacts(contacts)
+		case string(VISITOR):
+			locations := visitorHandler(sessions)
+			exportLocations(locations)
+		default:
+			visitors := locationHandler(sessions)
+			exportVisitors(visitors)
 		}
 	}
 	return false
+}
+
+func contactHandler(sessions *[]session) *[]contact{
+	contacts := make([]contact, 0)
+	for _, entry := range *sessions {
+		if strings.EqualFold(entry.Name, *config.Query) {
+			newContacts := getOverlaps(&entry, sessions)
+			contacts = append(contacts, *newContacts...)
+		}
+	}
+	return &contacts
+}
+
+func visitorHandler(sessions *[]session) *[]string {
+	qryResults := analyseLocationsByVisitor(*config.Query, sessions)
+	return qryResults
+}
+
+func locationHandler(sessions *[]session) *[]string {
+	qryResults := analyseVisitorsByLocation(*config.Query, sessions)
+	return qryResults
 }
 
 func credentialsToSession(creds *[]journal.Credentials) *[]session {
@@ -219,26 +237,26 @@ func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
 	return results, done
 }
 
-func isOverlapping(entry_1 *session, entry_2 *session) bool {
-	return ((entry_1.TimeCome.Before(entry_2.TimeGone) && entry_1.TimeGone.After(entry_2.TimeCome)) || entry_1.TimeCome.Equal(entry_2.TimeCome)) && strings.EqualFold(string(entry_1.Location), string(entry_2.Location)) && !(strings.EqualFold(string(entry_1.Name), string(entry_2.Name)))
+func isOverlapping(entry1 *session, entry2 *session) bool {
+	return ((entry1.TimeCome.Before(entry2.TimeGone) && entry1.TimeGone.After(entry2.TimeCome)) || entry1.TimeCome.Equal(entry2.TimeCome)) && strings.EqualFold(string(entry1.Location), string(entry2.Location)) && !(strings.EqualFold(entry1.Name, entry2.Name))
 }
 
-func calculateOverlap(entry_1 *session, entry_2 *session) time.Duration {
+func calculateOverlap(entry1 *session, entry2 *session) time.Duration {
 	var start time.Time
 	var end time.Time
 
 	// Set starttime of contact
-	if entry_1.TimeCome.After(entry_2.TimeCome) {
-		start = entry_1.TimeCome
+	if entry1.TimeCome.After(entry2.TimeCome) {
+		start = entry1.TimeCome
 	} else {
-		start = entry_2.TimeCome
+		start = entry2.TimeCome
 	}
 
 	// Set endtime of contact
-	if entry_1.TimeGone.After(entry_2.TimeGone) {
-		end = entry_2.TimeGone
+	if entry1.TimeGone.After(entry2.TimeGone) {
+		end = entry2.TimeGone
 	} else {
-		end = entry_1.TimeGone
+		end = entry1.TimeGone
 	}
 	return end.Sub(start)
 }

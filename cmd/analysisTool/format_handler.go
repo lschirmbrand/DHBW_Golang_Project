@@ -3,10 +3,9 @@ package main
 import (
 	"DHBW_Golang_Project/pkg/config"
 	"regexp"
-	"strings"
 )
 
-func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
+func checkFlagFunctionality() (bool, *[]string) {
 	flagsOk := true
 	fails := make([]string, 0)
 	ok, _ := validateDateInput(*config.Date)
@@ -18,15 +17,6 @@ func checkFlagFunctionality(selectedOperation *Operation) (bool, *[]string) {
 	if !ok {
 		flagsOk = false
 		fails = append(fails, "Operation input was incorrect.")
-	} else {
-		switch strings.ToLower(*config.Operation) {
-		case strings.ToLower(string(VISITOR)):
-			*selectedOperation = VISITOR
-		case strings.ToLower(string(CONTACT)):
-			*selectedOperation = CONTACT
-		default:
-			*selectedOperation = LOCATION
-		}
 	}
 	ok = validateQueryInput(*config.Query)
 	if !ok {
