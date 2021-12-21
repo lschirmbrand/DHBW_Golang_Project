@@ -73,6 +73,7 @@ func TestCheckinHandler(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	checkInHandler(recorder, req.WithContext(ctx))
+
 	resp := recorder.Result()
 	assert.Equal(t, 200, resp.StatusCode)
 }
@@ -107,6 +108,8 @@ func TestCheckedInHandler(t *testing.T) {
 	assert.Contains(t, string(body), "Max")
 	assert.Contains(t, string(body), "Mustermann")
 	assert.Contains(t, string(body), "TestLocation")
+
+	assert.Equal(t, 1, len(jour.Calls))
 }
 
 func TestCheckedOutHandler(t *testing.T) {
@@ -139,6 +142,8 @@ func TestCheckedOutHandler(t *testing.T) {
 	assert.Contains(t, string(body), "Max")
 	assert.Contains(t, string(body), "Mustermann")
 	assert.Contains(t, string(body), "TestLocation")
+
+	assert.Equal(t, 1, len(jour.Calls))
 }
 
 func TestValidateFormInput(t *testing.T) {
