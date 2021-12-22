@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	journal "DHBW_Golang_Project/pkg/journal"
+	journal "DHBW_Golang_Project/internal/journal"
 
 	mock "github.com/stretchr/testify/mock"
 )

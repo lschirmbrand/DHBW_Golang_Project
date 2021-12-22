@@ -1,8 +1,8 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
-	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/internal/config"
+	"DHBW_Golang_Project/internal/location"
 	"encoding/csv"
 	"log"
 	"os"
@@ -69,6 +69,8 @@ func TestExportToCSVFile(t *testing.T) {
 	content, err := csvReader.ReadAll()
 	checkErrorForTest(err)
 
+	//assert.EqualValues(t, "Results for: "+selector, content[0][0])
+
 	for j := 0; j < len(content[0]); j++ {
 		assert.EqualValues(t, results[j], content[1][j])
 	}
@@ -91,30 +93,30 @@ func TestBuildFileCSVPath(t *testing.T) {
 	assert.EqualValues(t, expected, out)
 }
 
-func TestCreateCSVHeader(t *testing.T){
+func TestCreateCSVHeader(t *testing.T) {
 	config.ConfigureAnalysisTool()
 	*config.Query = "Selector"
 
 	*config.Operation = string(LOCATION)
 	out := createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, "Results for the query: " + string(LOCATION) + " = " + *config.Query, (*out)[0])
+	assert.EqualValues(t, "Results for the query: "+string(LOCATION)+" = "+*config.Query, (*out)[0])
 
 	*config.Operation = string(VISITOR)
 	out = createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, "Results for the query: " + string(VISITOR) + " = " + *config.Query, (*out)[0])
+	assert.EqualValues(t, "Results for the query: "+string(VISITOR)+" = "+*config.Query, (*out)[0])
 
 	*config.Operation = string(CONTACT)
 	out = createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, string(CONTACT) + "s for the user: " + *config.Query, (*out)[0])
+	assert.EqualValues(t, string(CONTACT)+" for the user: "+*config.Query, (*out)[0])
 }
 
-func TestToSlice(t *testing.T){
+func TestToSlice(t *testing.T) {
 	name := "Dummyname"
 	location := location.Location("Dummylocation")
-	duration := 2*time.Hour
+	duration := 2 * time.Hour
 
 	contact := contact{
 		session: session{

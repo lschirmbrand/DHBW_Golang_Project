@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/internal/config"
 	"bufio"
 	"fmt"
 	"os"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func exportContacts(contacts *[]contact){
+func exportContacts(contacts *[]contact) {
 	if exportHandler(len(*contacts)) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
@@ -17,7 +17,7 @@ func exportContacts(contacts *[]contact){
 	}
 }
 
-func exportLocations(qryResults *[]string){
+func exportLocations(qryResults *[]string) {
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
@@ -25,10 +25,8 @@ func exportLocations(qryResults *[]string){
 	}
 }
 
-func exportVisitors(qryResults *[]string){
-	if !*config.Testcase {
-		fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
-	}
+func exportVisitors(qryResults *[]string) {
+	fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
 	for _, out := range *qryResults {
 		fmt.Println(out)
 	}
@@ -47,28 +45,19 @@ func assertQueryExport(s *[]string) bool {
 		if exportHandler(qLen) {
 			return true
 		} else {
-			if !*config.Testcase {
-				fmt.Println("Results of query wont get exported. \nAborting.")
-			}
+			fmt.Println("Results of query wont get exported. \nAborting.")
 			return false
 		}
 	} else {
-		if !*config.Testcase {
-			fmt.Println("No results were found for the queried selector.")
-		}
+		fmt.Println("No results were found for the queried selector.")
 		return false
 	}
 }
 
 func exportHandler(length int) bool {
-	if !*config.Testcase {
-		fmt.Println("The requested query resulted in ", length, " elements.")
-		fmt.Println("Do you want to additionally export the query to csv? [y/n]")
-	}
+	fmt.Println("The requested query resulted in ", length, " elements.")
+	fmt.Println("Do you want to additionally export the query to csv? [y/n]")
 	reader := bufio.NewReader(os.Stdin)
-	if *config.Testcase {
-		return true
-	}
 	for {
 		input, e := reader.ReadString('\n')
 		check(e)

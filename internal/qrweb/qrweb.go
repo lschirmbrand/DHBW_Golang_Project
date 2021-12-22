@@ -1,8 +1,8 @@
 package qrweb
 
 import (
-	"DHBW_Golang_Project/pkg/location"
-	"DHBW_Golang_Project/pkg/token"
+	"DHBW_Golang_Project/internal/location"
+	"DHBW_Golang_Project/internal/token"
 	"fmt"
 	"html/template"
 	"net/http"

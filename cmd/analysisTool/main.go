@@ -1,9 +1,9 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
-	"DHBW_Golang_Project/pkg/journal"
-	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/internal/config"
+	"DHBW_Golang_Project/internal/journal"
+	"DHBW_Golang_Project/internal/location"
 	"fmt"
 	"log"
 	"runtime"
@@ -35,9 +35,9 @@ type session struct {
 }
 
 const (
-	LOCATION           Operation = "Location"
-	VISITOR            Operation = "Visitor"
-	CONTACT            Operation = "Contact"
+	LOCATION Operation = "Location"
+	VISITOR  Operation = "Visitor"
+	CONTACT  Operation = "Contact"
 )
 
 func main() {
@@ -88,7 +88,7 @@ func startAnalyticalToolDialog() bool {
 	return false
 }
 
-func contactHandler(sessions *[]session) *[]contact{
+func contactHandler(sessions *[]session) *[]contact {
 	contacts := make([]contact, 0)
 	for _, entry := range *sessions {
 		if strings.EqualFold(entry.Name, *config.Query) {
