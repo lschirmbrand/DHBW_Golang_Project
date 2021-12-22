@@ -49,8 +49,8 @@ var (
 	Query     *string
 	Testcase  *bool
 
-	parsedWeb          bool = false
-	parsedAnalysisTool bool = false
+	parsedWeb          = false
+	parsedAnalysisTool = false
 )
 
 func ConfigureWeb() {

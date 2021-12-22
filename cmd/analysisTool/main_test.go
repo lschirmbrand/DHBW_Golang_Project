@@ -42,7 +42,11 @@ var (
 	testlogPath = "./test-log"
 )
 
-func TestContentToArray(t *testing.T) {
+func TestCredentialsToSession(t *testing.T) {
+	/*
+		Testfunction that validates, that the imported content was transformed correctly
+		into credentials and after that transformed correctly into sessions
+	 */
 	var content = strings.Split("CHECKIN,name1,address1,location1,20-10-2021 09:44:25;\n"+
 		"CHECKOUT,name1,address1,location1,20-10-2021 09:44:41;", "\n")
 	sessions := *credentialsToSession(contentToCredits(&content))
@@ -54,6 +58,10 @@ func TestContentToArray(t *testing.T) {
 }
 
 func TestAnalyseLocationsByVisitor(t *testing.T) {
+	/*
+		Testfunction that validates, that the locations visited by a person will be
+		interpreted correctly
+	 */
 	creds := make([]session, 0)
 	visitor := "Gustav Gans"
 	res := analyseLocationsByVisitor(visitor, &creds)
@@ -81,6 +89,10 @@ func TestAnalyseLocationsByVisitor(t *testing.T) {
 }
 
 func TestAnalyseVisitorsByLocation(t *testing.T) {
+	/*
+		Testfunction that validates, that the visitors that visited a queried
+		location will be interpreted correctly
+	*/
 	creds := make([]session, 0)
 	location := "Entenhausen"
 	res := analyseVisitorsByLocation(location, &creds)
@@ -108,10 +120,15 @@ func TestAnalyseVisitorsByLocation(t *testing.T) {
 }
 
 func TestIsOverlapping(t *testing.T) {
+	// Testfunction, that checks whether an overlap of contacts gets detected
 	assert.True(t, isOverlapping(&sessionA, &sessionB))
 }
 
 func TestCalculateOverlap(t *testing.T) {
+	/*
+		Testfunction that checks, whether the duration of the overlap of at
+		least two sessions will be calculated correctly
+	 */
 	overlap := calculateOverlap(&sessionA, &sessionB)
 	assert.EqualValues(t, 1*time.Hour, overlap)
 
@@ -133,6 +150,10 @@ func TestCalculateOverlap(t *testing.T) {
 }
 
 func TestGetOverlaps(t *testing.T) {
+	/*
+		Testfunction that checks if an overlap of contacts get detected and
+		returns the duration. If so, the duration will also get checked
+	 */
 	sessionA.TimeCome = startA
 	sessionA.TimeGone = endA
 	sessionB.TimeCome = startB

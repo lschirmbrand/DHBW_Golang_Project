@@ -26,7 +26,7 @@ func readDataFromFile(filePath string) *[]string {
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
 	out := strings.Split(string(text), "\n")
-	for i, _ := range out {
+	for i := range out {
 		out[i] = trimStringBasedOnOS(out[i], true)
 		if i == (len(out) - 1) {
 			out[i] = strings.TrimSuffix(out[i], ";")
