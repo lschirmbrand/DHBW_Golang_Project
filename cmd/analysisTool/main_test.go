@@ -53,22 +53,6 @@ func TestContentToArray(t *testing.T) {
 	assert.EqualValues(t, sessions[0].TimeGone.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
-/*func TestStartAnalyticalToolDialog(t *testing.T) {
-	config.ConfigureAnalysisTool()
-	*config.Testcase = true
-
-	date := ""
-	config.Date = &date
-	assert.False(t, startAnalyticalToolDialog())
-
-	date = "../../" + time.Now().Format(config.DATEFORMAT)
-	operation := "Visitor"
-	config.Operation = &operation
-	query := "abcdefghijklmnopqrstuvwxyz"
-	config.Query = &query
-	assert.False(t, startAnalyticalToolDialog())
-}*/
-
 func TestAnalyseLocationsByVisitor(t *testing.T) {
 	creds := make([]session, 0)
 	visitor := "Gustav Gans"

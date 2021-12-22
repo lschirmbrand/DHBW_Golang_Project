@@ -15,6 +15,10 @@ import (
 )
 
 func TestReadDataFromFile(t *testing.T) {
+	/*
+		Testfunction validates that the imported content will
+		be interpreted correctly
+	*/
 	config.ConfigureAnalysisTool()
 	in := "value1-x-y-z;\nvalue2.,!?;\nvalue3\t;\n"
 	expected := strings.Split(in, "\n")
@@ -38,6 +42,10 @@ func TestReadDataFromFile(t *testing.T) {
 }
 
 func TestExportToCSVFile(t *testing.T) {
+	/*
+		Testfunction validates that the exported content will
+		be interpreted and formatted correctly
+	*/
 	config.ConfigureAnalysisTool()
 	*config.LogPath = testExportPath
 
@@ -72,6 +80,7 @@ func TestExportToCSVFile(t *testing.T) {
 }
 
 func TestBuildFileLogPath(t *testing.T) {
+	// Testfunction that validates, that the logpath will be created correctly
 	config.ConfigureAnalysisTool()
 	*config.LogPath = "./logs"
 	in := *config.Date
@@ -81,6 +90,7 @@ func TestBuildFileLogPath(t *testing.T) {
 }
 
 func TestBuildFileCSVPath(t *testing.T) {
+	// Testfunction that validates, that the exportpath will be created correctly
 	config.ConfigureAnalysisTool()
 	*config.LogPath = "./logs"
 	*config.Operation = "operation"
@@ -91,6 +101,10 @@ func TestBuildFileCSVPath(t *testing.T) {
 }
 
 func TestCreateCSVHeader(t *testing.T) {
+	/*
+		Testfunction that validates, that the header/caption of the csv export
+		will have to fitting content and format
+	 */
 	config.ConfigureAnalysisTool()
 	*config.Query = "Selector"
 
@@ -131,6 +145,11 @@ func TestToSlice(t *testing.T) {
 }
 
 func TestTrimStringBasedOnOS(t *testing.T) {
+	/*
+		For the interpretation of files it's important to split/trim
+		accordingly/fitting for the used OS
+		The testfunction simulates the difference of the os
+	 */
 	if runtime.GOOS == "windows" {
 		res := trimStringBasedOnOS("teststring\r\n", true)
 		assert.EqualValues(t, res, "teststring")

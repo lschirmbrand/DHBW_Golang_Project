@@ -9,6 +9,12 @@ import (
 )
 
 func TestCheckFlagFunctionality(t *testing.T) {
+	/*
+		It's important for the tool, that the flags are set correctly.
+		This testfunction checks, whether the tested function interprets the
+		correct/incorrect flags as planned
+		Therefore, the flags get changed: correct <--> incorrect
+	 */
 	config.ConfigureAnalysisTool()
 	*config.LogPath = "../../" + *config.LogPath
 	date := "2021-10-29"
@@ -70,6 +76,10 @@ func TestCheckFlagFunctionality(t *testing.T) {
 }
 
 func TestDateValidator(t *testing.T) {
+	/*
+		Testfunction that validates, that the regex is
+		interpreting the input of the date as planned
+	 */
 	res, _ := validateDateInput("111-01-01")
 	assert.False(t, res)
 	res, _ = validateDateInput("2021-13-01")
@@ -87,6 +97,10 @@ func TestDateValidator(t *testing.T) {
 }
 
 func TestOperationValidator(t *testing.T) {
+	/*
+		Testfunction that validates, that the regex is
+		interpreting the input of the operation as planned
+	*/
 	res, _ := validateOperationInput("")
 	assert.False(t, res)
 	res, _ = validateOperationInput("a")
@@ -114,6 +128,10 @@ func TestOperationValidator(t *testing.T) {
 }
 
 func TestYesNoValidator(t *testing.T) {
+	/*
+		Testfunction that validates, that the regex is
+		interpreting the input of the validation as planned
+	*/
 	res, _ := validateYesNoInput("")
 	assert.False(t, res)
 	res, _ = validateYesNoInput("something")
@@ -151,6 +169,10 @@ func TestYesNoValidator(t *testing.T) {
 }
 
 func TestValidateQueryInput(t *testing.T) {
+	/*
+		Testfunction that validates, that the regex is
+		interpreting the input of the query as planned
+	*/
 	res := validateQueryInput("")
 	assert.False(t, res)
 	res = validateQueryInput("something")
