@@ -51,7 +51,7 @@ var (
 	checkedOutTemplate *template.Template
 
 	jour          journal.Journal
-	personStore   *person.CookieStore
+	cookieStore   *CookieStore
 	locationStore *location.LocationStore
 )
 
@@ -63,7 +63,7 @@ type CheckInMuxCfg struct {
 func Setup(j journal.Journal, locStore *location.LocationStore, cfg *CheckInMuxCfg) {
 	jour = j
 	parseTemplates(cfg.TempaltePath)
-	personStore = person.NewCookieStore(cfg.CookieLifetime)
+	cookieStore = NewCookieStore(cfg.CookieLifetime)
 	locationStore = locStore
 }
 
@@ -100,7 +100,7 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	invalid := r.URL.Query().Has("invalid_input")
 
 	// read saved person from cookies
-	pers := personStore.ReadFromCookies(r)
+	pers := cookieStore.ReadFromCookies(r)
 
 	data := CheckInPageData{
 		Person:       *pers,
@@ -123,11 +123,11 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	// read Person and location from Post Form
 	p := person.P{
-		Firstname: r.PostFormValue(person.FirstNameKey),
-		Lastname:  r.PostFormValue(person.LastNameKey),
-		Street:    r.PostFormValue(person.StreetKey),
-		PLZ:       r.PostFormValue(person.PlzKey),
-		City:      r.PostFormValue(person.CityKey),
+		Firstname: r.PostFormValue(cookieStore.FirstNameKey),
+		Lastname:  r.PostFormValue(cookieStore.LastNameKey),
+		Street:    r.PostFormValue(cookieStore.StreetKey),
+		PLZ:       r.PostFormValue(cookieStore.PlzKey),
+		City:      r.PostFormValue(cookieStore.CityKey),
 	}
 
 	loc := location.Location(r.PostFormValue(locationKey))
@@ -139,7 +139,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 			http.StatusBadRequest)
 	}
 
-	personStore.SaveToCookies(rw, &p)
+	cookieStore.SaveToCookies(rw, &p)
 
 	// validate Person input
 
@@ -176,11 +176,11 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	p := person.P{
-		Firstname: r.PostFormValue(person.FirstNameKey),
-		Lastname:  r.PostFormValue(person.LastNameKey),
-		Street:    r.PostFormValue(person.StreetKey),
-		PLZ:       r.PostFormValue(person.PlzKey),
-		City:      r.PostFormValue(person.CityKey),
+		Firstname: r.PostFormValue(cookieStore.FirstNameKey),
+		Lastname:  r.PostFormValue(cookieStore.LastNameKey),
+		Street:    r.PostFormValue(cookieStore.StreetKey),
+		PLZ:       r.PostFormValue(cookieStore.PlzKey),
+		City:      r.PostFormValue(cookieStore.CityKey),
 	}
 
 	data := CheckedoutPageData{
