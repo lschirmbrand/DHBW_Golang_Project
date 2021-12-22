@@ -1,10 +1,10 @@
 package checkinweb
 
 import (
-	"DHBW_Golang_Project/pkg/journal/mocks"
-	"DHBW_Golang_Project/pkg/location"
-	"DHBW_Golang_Project/pkg/person"
-	"DHBW_Golang_Project/pkg/token"
+	"DHBW_Golang_Project/internal/journal/mocks"
+	"DHBW_Golang_Project/internal/location"
+	"DHBW_Golang_Project/internal/person"
+	"DHBW_Golang_Project/internal/token"
 	"context"
 	"fmt"
 	"io/ioutil"

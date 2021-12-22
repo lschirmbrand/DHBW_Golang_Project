@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/internal/config"
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
@@ -15,17 +15,16 @@ func buildFileLogPath(date string) string {
 }
 
 func buildFileCSVPath() string {
-	return path.Join(*config.LogPath, "export-"+ *config.Operation +"_"+*config.Query+".csv")
+	return path.Join(*config.LogPath, "export-"+*config.Operation+"_"+*config.Query+".csv")
 }
-
 
 func readDataFromFile(filePath string) *[]string {
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
 	out := strings.Split(string(text), "\n")
-	for i, _ := range out{
+	for i, _ := range out {
 		out[i] = trimStringBasedOnOS(out[i], true)
-		if i == (len(out)-1) {
+		if i == (len(out) - 1) {
 			out[i] = strings.TrimSuffix(out[i], ";")
 		}
 	}

@@ -1,7 +1,7 @@
 package journal
 
 import (
-	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/internal/location"
 	"log"
 	"os"
 	"path"
