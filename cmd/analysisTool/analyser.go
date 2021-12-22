@@ -5,9 +5,54 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 )
+
+func contactHandler(sessions *[]session) *[]contact {
+	// Function initiates the contact verification
+	contacts := make([]contact, 0)
+	for _, entry := range *sessions {
+		if strings.EqualFold(entry.Name, *config.Query) {
+			newContacts := getOverlaps(&entry, sessions)
+			contacts = append(contacts, *newContacts...)
+		}
+	}
+	return &contacts
+}
+
+func visitorHandler(sessions *[]session) *[]string {
+	// Function initiates the location analysing
+	qryResults := analyseLocationsByVisitor(*config.Query, sessions)
+	return qryResults
+}
+
+func locationHandler(sessions *[]session) *[]string {
+	// Function initiates the visitor analysing
+	qryResults := analyseVisitorsByLocation(*config.Query, sessions)
+	return qryResults
+}
+
+func analyseLocationsByVisitor(visitor string, data *[]session) *[]string {
+	// Function appends all locations visited by a person
+	s := make([]string, 0)
+	for _, entry := range *data {
+		if strings.EqualFold(entry.Name, visitor) {
+			s = append(s, string(entry.Location))
+		}
+	}
+	return &s
+}
+
+func analyseVisitorsByLocation(location string, data *[]session) *[]string {
+	// Function appends all locations visited by a person
+	s := make([]string, 0)
+	for _, entry := range *data {
+		if strings.EqualFold(string(entry.Location), location) {
+			s = append(s, entry.Name)
+		}
+	}
+	return &s
+}
 
 func exportContacts(contacts *[]contact) {
 	if exportHandler(len(*contacts)) {
@@ -17,7 +62,7 @@ func exportContacts(contacts *[]contact) {
 	}
 }
 
-func exportLocations(qryResults *[]string) {
+func exportLocationsForVisitor(qryResults *[]string) {
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
@@ -25,14 +70,14 @@ func exportLocations(qryResults *[]string) {
 	}
 }
 
-func exportVisitors(qryResults *[]string) {
+func exportVisitorsForLocation(qryResults *[]string) {
 	if !*config.Testcase {
 		fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
+		for _, out := range *qryResults {
+			fmt.Println(out)
+		}
+		fmt.Print("\n")
 	}
-	for _, out := range *qryResults {
-		fmt.Println(out)
-	}
-	fmt.Print("\n")
 
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
@@ -83,21 +128,4 @@ func exportHandler(length int) bool {
 
 func queryLengthHandler(slice []string) int {
 	return len(slice)
-}
-
-func trimStringBasedOnOS(text string, isSuffix bool) string {
-	isWindows := runtime.GOOS == "windows"
-	if isSuffix {
-		if isWindows {
-			text = strings.TrimSuffix(text, "\x0d")
-			text = strings.TrimSuffix(text, "\x0a")
-			text = strings.TrimSuffix(text, "\n")
-			return strings.TrimSuffix(text, "\r")
-		}
-		text = strings.TrimSuffix(text, "\x0d")
-		return strings.TrimSuffix(text, "\n")
-	} else {
-		text = strings.TrimPrefix(text, "\x0d")
-		return strings.TrimPrefix(text, "\n")
-	}
 }

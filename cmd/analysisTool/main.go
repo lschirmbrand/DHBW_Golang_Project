@@ -6,20 +6,11 @@ import (
 	"DHBW_Golang_Project/internal/location"
 	"fmt"
 	"log"
-	"runtime"
 	"strings"
 	"time"
 )
 
 type Operation string
-
-type job struct {
-	content string
-}
-
-type result struct {
-	cred journal.Credentials
-}
 
 type contact struct {
 	session  session
@@ -75,46 +66,40 @@ func startAnalyticalToolDialog() bool {
 		*/
 		switch *config.Operation {
 		case string(CONTACT):
+			// Query contacts and export them
 			contacts := contactHandler(sessions)
 			exportContacts(contacts)
 		case string(VISITOR):
+			// Query locations and export their visitors
 			locations := visitorHandler(sessions)
-			exportLocations(locations)
+			exportLocationsForVisitor(locations)
 		default:
+			// Query visitors and export their locations
 			visitors := locationHandler(sessions)
-			exportVisitors(visitors)
+			exportVisitorsForLocation(visitors)
 		}
 	}
 	return false
 }
 
-func contactHandler(sessions *[]session) *[]contact {
-	contacts := make([]contact, 0)
-	for _, entry := range *sessions {
-		if strings.EqualFold(entry.Name, *config.Query) {
-			newContacts := getOverlaps(&entry, sessions)
-			contacts = append(contacts, *newContacts...)
-		}
-	}
-	return &contacts
-}
-
-func visitorHandler(sessions *[]session) *[]string {
-	qryResults := analyseLocationsByVisitor(*config.Query, sessions)
-	return qryResults
-}
-
-func locationHandler(sessions *[]session) *[]string {
-	qryResults := analyseVisitorsByLocation(*config.Query, sessions)
-	return qryResults
-}
-
-func credentialsToSession(creds *[]journal.Credentials) *[]session {
+func credentialsToSession(credentials *[]journal.Credentials) *[]session {
+	/*
+		The function iterates over all credentials of the log-file.
+		This happens in chronological order, so that in case of
+		multiple visits from a person at the same day, the checkins
+		and checkouts won't get mixed up.
+		In before this was implemented with workers, but the already
+		described problem caused the change of structure.
+	*/
 	sessions := make([]session, 0)
-	for _, e := range *creds {
+	for _, e := range *credentials {
 		if e.Checkin {
+			/*
+				If the matching checkout for the queried checkin was found,
+				a session will be created with all information of the visit
+			 */
 			found := false
-			for _, eout := range *creds {
+			for _, eout := range *credentials {
 				if !eout.Checkin {
 					if e.Name == eout.Name && e.Address == eout.Address && e.Location == eout.Location {
 						sessions = append(sessions, session{
@@ -129,6 +114,11 @@ func credentialsToSession(creds *[]journal.Credentials) *[]session {
 					}
 				}
 			}
+			/*
+				If no matching checkout for the queried checkin was found,
+				the session is still active and therefore will be treated
+				for the analyser as the current time.
+			*/
 			if !found {
 				sessions = append(sessions, session{
 					e.Name,
@@ -150,51 +140,34 @@ func check(e error) bool {
 	return true
 }
 
-func analyseLocationsByVisitor(visitor string, data *[]session) *[]string {
-	s := make([]string, 0)
-	for _, entry := range *data {
-		if strings.EqualFold(entry.Name, visitor) {
-			s = append(s, string(entry.Location))
-		}
-	}
-	return &s
-}
-
-func analyseVisitorsByLocation(location string, data *[]session) *[]string {
-	s := make([]string, 0)
-	for _, entry := range *data {
-		if strings.EqualFold(string(entry.Location), location) {
-			s = append(s, entry.Name)
-		}
-	}
-	return &s
-}
-
 func contentToCredits(content *[]string) *[]journal.Credentials {
+	/*
+		Each row of the log-file will be parsed to a
+		credential-entry
+	 */
 	data := make([]journal.Credentials, len(*content))
-	jobs := jobFactory(*content)
-	results, imageDone := resultCollector(&data)
-
-	workersDone := make(chan bool)
-	workers := runtime.NumCPU()
-	for i := 0; i < workers; i++ {
-		go worker(jobs, results, workersDone)
+	for i, row := range *content {
+		data[i] = splitDataRowToCells(row)
 	}
 
-	for i := 0; i < workers; i++ {
-		<-workersDone
-	}
-
-	close(results)
-	<-imageDone
 	return &data
 }
 
 func splitDataRowToCells(row string) journal.Credentials {
+	/*
+		Each row will be split by commas, as the string
+		separator. The linebreak Separator is getting
+		removed. If a row results in more than one
+		element, it contains content.
+	*/
 	var cred journal.Credentials
 	row = strings.Trim(row, ";")
 	cells := strings.Split(row, ",")
 	if len(cells) > 1 {
+		/*
+			Each cell of the string represents a cell in the credentials.
+			Therefore, the credentials gets filled.
+		 */
 		cred.Checkin = strings.EqualFold(trimStringBasedOnOS(strings.ToLower(cells[0]), false), "checkin")
 		cred.Name = cells[1]
 		cred.Address = cells[2]
@@ -206,44 +179,20 @@ func splitDataRowToCells(row string) journal.Credentials {
 	return cred
 }
 
-func jobFactory(content []string) <-chan job {
-	jobs := make(chan job)
-	go func() {
-		for i := 0; i < len(content); i++ {
-			jobs <- job{content[i]}
-		}
-		close(jobs)
-	}()
-	return jobs
-}
-
-func worker(jobs <-chan job, results chan<- result, done chan<- bool) {
-	for job := range jobs {
-		results <- result{splitDataRowToCells(job.content)}
-	}
-	done <- true
-}
-
-func resultCollector(data *[]journal.Credentials) (chan<- result, <-chan bool) {
-	results := make(chan result)
-	done := make(chan bool)
-	go func() {
-		i := 0
-		for result := range results {
-			(*data)[i] = result.cred
-			i++
-		}
-		done <- true
-	}()
-
-	return results, done
-}
-
 func isOverlapping(entry1 *session, entry2 *session) bool {
+	/*
+		The function checks for an eventual overlap between two
+		passed session. Returns true, if they overlap.
+	 */
 	return ((entry1.TimeCome.Before(entry2.TimeGone) && entry1.TimeGone.After(entry2.TimeCome)) || entry1.TimeCome.Equal(entry2.TimeCome)) && strings.EqualFold(string(entry1.Location), string(entry2.Location)) && !(strings.EqualFold(entry1.Name, entry2.Name))
 }
 
 func calculateOverlap(entry1 *session, entry2 *session) time.Duration {
+	/*
+		If an overlap of the two session was detected, the duration
+		of the contact is important. Therefore, this duration has to
+		will be calculated in this function.
+	 */
 	var start time.Time
 	var end time.Time
 
@@ -260,10 +209,15 @@ func calculateOverlap(entry1 *session, entry2 *session) time.Duration {
 	} else {
 		end = entry1.TimeGone
 	}
+	// The starttime gets subtracted from the endtime --> Duration
 	return end.Sub(start)
 }
 
 func getOverlaps(queryEntry *session, entries *[]session) *[]contact {
+	/*
+		This function launches the contact verification, collects all
+		contacts for one person (or their session). All contacts get returned.
+	 */
 	contacts := make([]contact, 0)
 
 	for _, entry := range *entries {

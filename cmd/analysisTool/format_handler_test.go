@@ -2,13 +2,25 @@ package main
 
 import (
 	"DHBW_Golang_Project/internal/config"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckFlagFunctionality(t *testing.T) {
+	config.ConfigureAnalysisTool()
+	*config.LogPath = "../../" + *config.LogPath
 	date := "2021-10-29"
+
+	defer func(path string) {
+		err := os.Remove(path)
+		checkErrorForTest(err)
+	}(buildFileLogPath(date))
+	f, err := os.Create(buildFileLogPath(date))
+	checkErrorForTest(err)
+	f.Close()
+
 	config.Date = &date
 	operation := "Visitor"
 	config.Operation = &operation
@@ -20,34 +32,41 @@ func TestCheckFlagFunctionality(t *testing.T) {
 	assert.EqualValues(t, 0, len(*fails))
 	assert.EqualValues(t, *config.Operation, VISITOR)
 
+	*config.Date = "2021-10-30"
+
+	res, fails = checkFlagFunctionality()
+	assert.False(t, res)
+	assert.EqualValues(t, 1, len(*fails))
+	assert.EqualValues(t, *config.Operation, VISITOR)
+
 	operation = "Location"
 	res, fails = checkFlagFunctionality()
-	assert.True(t, res)
-	assert.EqualValues(t, 0, len(*fails))
+	assert.False(t, res)
+	assert.EqualValues(t, 1, len(*fails))
 	assert.EqualValues(t, *config.Operation, LOCATION)
 
 	operation = "Contact"
 	res, fails = checkFlagFunctionality()
-	assert.True(t, res)
-	assert.EqualValues(t, 0, len(*fails))
+	assert.False(t, res)
+	assert.EqualValues(t, 1, len(*fails))
 	assert.EqualValues(t, *config.Operation, CONTACT)
 
 	date = "2021-13-29"
 	config.Date = &date
 	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
-	assert.EqualValues(t, 1, len(*fails))
+	assert.EqualValues(t, 2, len(*fails))
 
 	operation = "somethingDifferent"
 	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
-	assert.EqualValues(t, 2, len(*fails))
+	assert.EqualValues(t, 3, len(*fails))
 
 	query = ""
 	config.Query = &query
 	res, fails = checkFlagFunctionality()
 	assert.False(t, res)
-	assert.EqualValues(t, 3, len(*fails))
+	assert.EqualValues(t, 4, len(*fails))
 }
 
 func TestDateValidator(t *testing.T) {

@@ -7,18 +7,22 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 )
 
 func buildFileLogPath(date string) string {
+	// Helper-Function for the creation of the logpath
 	return path.Join(*config.LogPath, "logs-"+date+".txt")
 }
 
 func buildFileCSVPath() string {
+	// Helper-Function for the creation of the exportpath
 	return path.Join(*config.LogPath, "export-"+*config.Operation+"_"+*config.Query+".csv")
 }
 
 func readDataFromFile(filePath string) *[]string {
+	// Function reads the content of a file
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
 	out := strings.Split(string(text), "\n")
@@ -69,7 +73,7 @@ func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath strin
 	for _, contact := range *contacts {
 		row := contact.toSlice()
 		if err := writer.Write(*row); err != nil {
-			if !*config.Testcase{
+			if !*config.Testcase {
 				fmt.Println("Failed to write, aborting!")
 			}
 			return
@@ -82,6 +86,10 @@ func writeContactsToCSV(contacts *[]contact, csvHeader *[]string, filePath strin
 }
 
 func createCSVHeader() *[]string {
+	/*
+		The function is used to create the caption, which
+		gets printed above the csv-export
+	 */
 	var infix string
 	switch *config.Operation {
 	case string(LOCATION):
@@ -102,4 +110,30 @@ func (contact *contact) toSlice() *[]string {
 	field[1] = string(contact.session.Location)
 	field[2] = contact.duration.String()
 	return &field
+}
+
+func checkFileExistence(path string) bool {
+	// Helper function to check whether a file exists
+	if _, err := os.Stat(path); err == nil {
+		return true
+	}
+	return false
+}
+
+func trimStringBasedOnOS(text string, isSuffix bool) string {
+	// Function is used to trim linebreaks based on the OS
+	isWindows := runtime.GOOS == "windows"
+	if isSuffix {
+		if isWindows {
+			text = strings.TrimSuffix(text, "\x0d")
+			text = strings.TrimSuffix(text, "\x0a")
+			text = strings.TrimSuffix(text, "\n")
+			return strings.TrimSuffix(text, "\r")
+		}
+		text = strings.TrimSuffix(text, "\x0d")
+		return strings.TrimSuffix(text, "\n")
+	} else {
+		text = strings.TrimPrefix(text, "\x0d")
+		return strings.TrimPrefix(text, "\n")
+	}
 }

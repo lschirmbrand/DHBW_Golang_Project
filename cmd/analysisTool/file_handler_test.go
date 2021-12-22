@@ -4,9 +4,9 @@ import (
 	"DHBW_Golang_Project/internal/config"
 	"DHBW_Golang_Project/internal/location"
 	"encoding/csv"
-	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -24,15 +24,11 @@ func TestReadDataFromFile(t *testing.T) {
 	check(e)
 	defer func(name string) {
 		err := os.Remove(name)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		checkErrorForTest(err)
 	}(filePath)
 	defer func(f *os.File) {
 		err := f.Close()
-		if err != nil {
-			log.Fatalln(err)
-		}
+		checkErrorForTest(err)
 	}(f)
 
 	out := *readDataFromFile(filePath)
@@ -43,26 +39,24 @@ func TestReadDataFromFile(t *testing.T) {
 
 func TestExportToCSVFile(t *testing.T) {
 	config.ConfigureAnalysisTool()
+	*config.LogPath = testExportPath
+
+	defer cleanupTestLogs()
+
 	results := []string{
 		"location1", "location2", "location3", "location4", "location5",
 	}
 
 	*config.Operation = string(VISITOR)
 	*config.Query = "TestSelector"
+	*config.Testcase = true
 
 	// Tests use path relative from own path
-	filePath := "../../" + buildFileCSVPath()
+	filePath := buildFileCSVPath()
 	csvHeader := createCSVHeader()
 	writeSessionsToCSV(&results, csvHeader, filePath)
 	f, err := os.Open(filePath)
 	checkErrorForTest(err)
-
-	defer func(name string) {
-		err := f.Close()
-		checkErrorForTest(err)
-		err = os.Remove(name)
-		checkErrorForTest(err)
-	}(filePath)
 
 	csvReader := csv.NewReader(f)
 	csvReader.FieldsPerRecord = -1
@@ -72,11 +66,15 @@ func TestExportToCSVFile(t *testing.T) {
 	for j := 0; j < len(content[0]); j++ {
 		assert.EqualValues(t, results[j], content[1][j])
 	}
+
+	err = f.Close()
+	checkErrorForTest(err)
 }
 
 func TestBuildFileLogPath(t *testing.T) {
 	config.ConfigureAnalysisTool()
-	in := time.Now().Format(config.DATEFORMAT)
+	*config.LogPath = "./logs"
+	in := *config.Date
 	out := buildFileLogPath(in)
 	expected := "logs/logs-" + in + ".txt"
 	assert.EqualValues(t, expected, out)
@@ -84,6 +82,7 @@ func TestBuildFileLogPath(t *testing.T) {
 
 func TestBuildFileCSVPath(t *testing.T) {
 	config.ConfigureAnalysisTool()
+	*config.LogPath = "./logs"
 	*config.Operation = "operation"
 	*config.Query = "selector"
 	out := buildFileCSVPath()
@@ -129,4 +128,16 @@ func TestToSlice(t *testing.T) {
 	assert.EqualValues(t, name, (*out)[0])
 	assert.EqualValues(t, location, (*out)[1])
 	assert.EqualValues(t, duration.String(), (*out)[2])
+}
+
+func TestTrimStringBasedOnOS(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		res := trimStringBasedOnOS("teststring\r\n", true)
+		assert.EqualValues(t, res, "teststring")
+	} else {
+		res := trimStringBasedOnOS("teststring\n", true)
+		assert.EqualValues(t, res, "teststring")
+	}
+	res := trimStringBasedOnOS("\nteststring", false)
+	assert.EqualValues(t, res, "teststring")
 }
