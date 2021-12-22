@@ -31,34 +31,43 @@ type LogFileJournal struct {
 }
 
 func NewLogFileJournal(logDirName string) *LogFileJournal {
+	/*
+		Public accessible function that returns a structure, which contains
+		the log-directory and the log-path.
+	 */
 	return &LogFileJournal{
 		logDir:  logDirName,
 		logFile: path.Join(logDirName, "logs-"+time.Now().Format(DATEFORMAT)+".txt"),
 	}
 }
 
-func check(e error) bool {
-	if e != nil {
-		log.Fatal(e)
-		return false
-	}
-	return true
-}
-
 func (j LogFileJournal) LogOut(cred *Credentials) bool {
+	/*
+		Public accessible function, which calls the function "log" and
+		only sets the "Checkin" value to false.
+	*/
 	cred.Checkin = false
 	ok := j.log(cred)
 	return ok
 }
 
 func (j LogFileJournal) LogIn(cred *Credentials) bool {
+	/*
+		Public accessible function, which calls the function "log" and
+		only sets the "Checkin" value to true.
+	 */
 	cred.Checkin = true
 	ok := j.log(cred)
 	return ok
 }
 
 func (j LogFileJournal) log(cred *Credentials) bool {
-	logmsg := buildCredits(cred)
+	/*
+		The function is an internal function, which is only accessible inside
+		the package. It gets called from the two functions LogIn and LogOut,
+		which only change the "Checkin" value of the credentials element
+	*/
+	logmsg := buildCreditString(cred)
 	if _, err := os.Stat(j.logDir); os.IsNotExist(err) {
 		os.MkdirAll(j.logDir, 0755)
 	}
@@ -80,7 +89,11 @@ func (j LogFileJournal) log(cred *Credentials) bool {
 	return check(e)
 }
 
-func buildCredits(credits *Credentials) string {
+func buildCreditString(credits *Credentials) string {
+	/*
+		Passed credit gets transformed into a string with a string-builder,
+		which will be returned and exported to the log-file.
+	 */
 	var sb strings.Builder
 	switch credits.Checkin {
 	case true:
@@ -98,4 +111,12 @@ func buildCredits(credits *Credentials) string {
 	sb.WriteString(credits.Timestamp.Format(DATEFORMATWITHTIME))
 	sb.WriteString(";\n")
 	return sb.String()
+}
+
+func check(e error) bool {
+	if e != nil {
+		log.Fatal(e)
+		return false
+	}
+	return true
 }

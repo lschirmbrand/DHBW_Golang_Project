@@ -13,7 +13,10 @@ var (
 )
 
 func TestLogIn(t *testing.T) {
-
+	/*
+		Testfunction that checks, whether the credentials will be exported
+		correctly for the case "Checkin"
+	*/
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
@@ -34,7 +37,10 @@ func TestLogIn(t *testing.T) {
 }
 
 func TestLogOut(t *testing.T) {
-
+	/*
+		Testfunction that checks, whether the credentials will be exported
+		correctly for the case "Checkout"
+	*/
 	defer cleanupTestLogs()
 
 	var cred = Credentials{
@@ -55,32 +61,17 @@ func TestLogOut(t *testing.T) {
 }
 
 func TestReturnCreditsToString(t *testing.T) {
+	/*
+		Testfunction that checks, whether the credentials will be transformed correctly
+		into the string, which would be exported afterwards.
+	*/
 	var cred = Credentials{
 		Address:   "Address",
 		Name:      "Name",
 		Location:  "Location",
 		Timestamp: time.Now(),
 	}
-	assert.EqualValues(t, buildCredits(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
-}
-
-func TestLogTestExample(t *testing.T) {
-
-	defer cleanupTestLogs()
-
-	jour := NewLogFileJournal(testLogPath)
-
-	var cred = Credentials{
-		Checkin:   true,
-		Name:      "Name",
-		Address:   "Address",
-		Location:  "Location",
-		Timestamp: time.Now(),
-	}
-	for i := 0; i < 20; i++ {
-		jour.LogIn(&cred)
-		jour.LogOut(&cred)
-	}
+	assert.EqualValues(t, buildCreditString(&cred), "CHECKOUT,"+cred.Name+","+cred.Address+","+string(cred.Location)+","+cred.Timestamp.Format(DATEFORMATWITHTIME)+";\n")
 }
 
 func cleanupTestLogs() {
