@@ -1,53 +1,58 @@
-package person
+package checkinweb
 
 import (
+	"DHBW_Golang_Project/internal/person"
 	"encoding/base64"
 	"net/http"
 	"time"
 )
 
-const (
-	FirstNameKey = "firstName"
-	LastNameKey  = "lastName"
-	StreetKey    = "street"
-	PlzKey       = "plz"
-	CityKey      = "city"
-)
+const ()
 
 type CookieStore struct {
 	cookieLifetime time.Duration
+	FirstNameKey   string
+	LastNameKey    string
+	StreetKey      string
+	PlzKey         string
+	CityKey        string
 }
 
 func NewCookieStore(cookieLifeSeconds int) *CookieStore {
 	return &CookieStore{
 		cookieLifetime: time.Hour * time.Duration(cookieLifeSeconds),
+		FirstNameKey:   "firstName",
+		LastNameKey:    "lastName",
+		StreetKey:      "street",
+		PlzKey:         "plz",
+		CityKey:        "city",
 	}
 }
 
-func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *P) {
+func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *person.P) {
 
 	firstNameCookie := http.Cookie{
-		Name:    FirstNameKey,
+		Name:    cs.FirstNameKey,
 		Value:   encodeToBase64(p.Firstname),
 		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	lastNameCookie := http.Cookie{
-		Name:    LastNameKey,
+		Name:    cs.LastNameKey,
 		Value:   encodeToBase64(p.Lastname),
 		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	streetCookie := http.Cookie{
-		Name:    StreetKey,
+		Name:    cs.StreetKey,
 		Value:   encodeToBase64(p.Street),
 		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	plzCookie := http.Cookie{
-		Name:    PlzKey,
+		Name:    cs.PlzKey,
 		Value:   encodeToBase64(p.PLZ),
 		Expires: time.Now().Add(cs.cookieLifetime),
 	}
 	cityCookie := http.Cookie{
-		Name:    CityKey,
+		Name:    cs.CityKey,
 		Value:   encodeToBase64(p.City),
 		Expires: time.Now().Add(cs.cookieLifetime),
 	}
@@ -59,8 +64,8 @@ func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *P) {
 	http.SetCookie(rw, &cityCookie)
 }
 
-func (cs CookieStore) ReadFromCookies(r *http.Request) *P {
-	p := P{
+func (cs CookieStore) ReadFromCookies(r *http.Request) *person.P {
+	p := person.P{
 		Firstname: "",
 		Lastname:  "",
 		Street:    "",
@@ -68,27 +73,27 @@ func (cs CookieStore) ReadFromCookies(r *http.Request) *P {
 		City:      "",
 	}
 
-	firstName, err := r.Cookie(FirstNameKey)
+	firstName, err := r.Cookie(cs.FirstNameKey)
 	if err == nil {
 		p.Firstname = decodeFromBase64(firstName.Value)
 	}
 
-	lastName, err := r.Cookie(LastNameKey)
+	lastName, err := r.Cookie(cs.LastNameKey)
 	if err == nil {
 		p.Lastname = decodeFromBase64(lastName.Value)
 	}
 
-	street, err := r.Cookie(StreetKey)
+	street, err := r.Cookie(cs.StreetKey)
 	if err == nil {
 		p.Street = decodeFromBase64(street.Value)
 	}
 
-	plz, err := r.Cookie(PlzKey)
+	plz, err := r.Cookie(cs.PlzKey)
 	if err == nil {
 		p.PLZ = decodeFromBase64(plz.Value)
 	}
 
-	city, err := r.Cookie(CityKey)
+	city, err := r.Cookie(cs.CityKey)
 	if err == nil {
 		p.City = decodeFromBase64(city.Value)
 	}

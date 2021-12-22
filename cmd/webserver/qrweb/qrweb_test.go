@@ -16,7 +16,7 @@ func SetupTest() {
 	st = location.NewLocationStore("./test_assets/locations.xml")
 
 	Setup(st, QrMuxCfg{
-		TemplatePath: "../../web/templates",
+		TemplatePath: "../../../web/templates",
 		QrCodePath:   "./test_assets/qr-codes",
 		RefreshTime:  2,
 		CheckInPort:  8443,

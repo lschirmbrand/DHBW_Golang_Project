@@ -1,6 +1,7 @@
-package person
+package checkinweb
 
 import (
+	"DHBW_Golang_Project/internal/person"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +15,7 @@ func TestSavePersonToCookies(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 
-	p := P{
+	p := person.P{
 		Firstname: "Max",
 		Lastname:  "Mustermann",
 		Street:    "Teststr. 5",
@@ -47,7 +48,7 @@ func TestReadPersonFromCookies(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "http://localhost", nil)
 
-	p := P{
+	p := person.P{
 		Firstname: "Max",
 		Lastname:  "Mustermann",
 		Street:    "Teststr. 5",
@@ -55,24 +56,26 @@ func TestReadPersonFromCookies(t *testing.T) {
 		City:      "Musterstadt",
 	}
 
+	store := NewCookieStore(60)
+
 	firstNameCookie := http.Cookie{
-		Name:  FirstNameKey,
+		Name:  store.FirstNameKey,
 		Value: encodeToBase64(p.Firstname),
 	}
 	lastNameCookie := http.Cookie{
-		Name:  LastNameKey,
+		Name:  store.LastNameKey,
 		Value: encodeToBase64(p.Lastname),
 	}
 	streetCookie := http.Cookie{
-		Name:  StreetKey,
+		Name:  store.StreetKey,
 		Value: encodeToBase64(p.Street),
 	}
 	plzCookie := http.Cookie{
-		Name:  PlzKey,
+		Name:  store.PlzKey,
 		Value: encodeToBase64(p.PLZ),
 	}
 	cityCookie := http.Cookie{
-		Name:  CityKey,
+		Name:  store.CityKey,
 		Value: encodeToBase64(p.City),
 	}
 
@@ -81,8 +84,6 @@ func TestReadPersonFromCookies(t *testing.T) {
 	req.AddCookie(&streetCookie)
 	req.AddCookie(&plzCookie)
 	req.AddCookie(&cityCookie)
-
-	store := NewCookieStore(60)
 
 	p1 := store.ReadFromCookies(req)
 
