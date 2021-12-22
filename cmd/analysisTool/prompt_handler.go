@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/internal/config"
 	"bufio"
 	"fmt"
 	"os"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func exportContacts(contacts *[]contact){
+func exportContacts(contacts *[]contact) {
 	if exportHandler(len(*contacts)) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
@@ -17,7 +17,7 @@ func exportContacts(contacts *[]contact){
 	}
 }
 
-func exportLocations(qryResults *[]string){
+func exportLocations(qryResults *[]string) {
 	if assertQueryExport(qryResults) {
 		filePath := buildFileCSVPath()
 		csvHeader := createCSVHeader()
@@ -25,7 +25,7 @@ func exportLocations(qryResults *[]string){
 	}
 }
 
-func exportVisitors(qryResults *[]string){
+func exportVisitors(qryResults *[]string) {
 	fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
 	for _, out := range *qryResults {
 		fmt.Println(out)

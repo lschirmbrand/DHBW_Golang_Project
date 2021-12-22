@@ -1,7 +1,7 @@
 package token
 
 import (
-	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/internal/location"
 	"math/rand"
 )
 

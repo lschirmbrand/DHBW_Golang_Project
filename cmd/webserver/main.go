@@ -1,11 +1,11 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/checkinweb"
-	"DHBW_Golang_Project/pkg/config"
-	"DHBW_Golang_Project/pkg/journal"
-	"DHBW_Golang_Project/pkg/location"
-	"DHBW_Golang_Project/pkg/qrweb"
+	"DHBW_Golang_Project/internal/checkinweb"
+	"DHBW_Golang_Project/internal/config"
+	"DHBW_Golang_Project/internal/journal"
+	"DHBW_Golang_Project/internal/location"
+	"DHBW_Golang_Project/internal/qrweb"
 	"fmt"
 	"log"
 	"net/http"

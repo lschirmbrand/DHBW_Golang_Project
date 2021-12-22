@@ -1,7 +1,7 @@
 package qrweb
 
 import (
-	"DHBW_Golang_Project/pkg/location"
+	"DHBW_Golang_Project/internal/location"
 	"net/http"
 	"net/http/httptest"
 	"testing"
