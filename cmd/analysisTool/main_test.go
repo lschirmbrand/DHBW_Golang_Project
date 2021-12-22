@@ -3,7 +3,6 @@ package main
 import (
 	"DHBW_Golang_Project/internal/config"
 	"DHBW_Golang_Project/internal/location"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -39,7 +38,15 @@ var sessionB = session{
 	TimeGone: endB,
 }
 
-func TestContentToArray(t *testing.T) {
+var (
+	testlogPath = "./test-log"
+)
+
+func TestCredentialsToSession(t *testing.T) {
+	/*
+		Testfunction that validates, that the imported content was transformed correctly
+		into credentials and after that transformed correctly into sessions
+	 */
 	var content = strings.Split("CHECKIN,name1,address1,location1,20-10-2021 09:44:25;\n"+
 		"CHECKOUT,name1,address1,location1,20-10-2021 09:44:41;", "\n")
 	sessions := *credentialsToSession(contentToCredits(&content))
@@ -50,25 +57,11 @@ func TestContentToArray(t *testing.T) {
 	assert.EqualValues(t, sessions[0].TimeGone.Format(config.DATEFORMATWITHTIME), "20-10-2021 09:44:41")
 }
 
-func TestStartAnalyticalToolDialog(t *testing.T) {
-	*config.Testcase = true
-	filePath := "../../" + buildFileLogPath(time.Now().Format(config.DATEFORMAT))
-	_, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	checkErrorForTest(err)
-
-	date := ""
-	config.Date = &date
-	assert.False(t, startAnalyticalToolDialog())
-
-	date = "../../" + time.Now().Format(config.DATEFORMAT)
-	operation := "Visitor"
-	config.Operation = &operation
-	query := "abcdefghijklmnopqrstuvwxyz"
-	config.Query = &query
-	assert.False(t, startAnalyticalToolDialog())
-}
-
 func TestAnalyseLocationsByVisitor(t *testing.T) {
+	/*
+		Testfunction that validates, that the locations visited by a person will be
+		interpreted correctly
+	 */
 	creds := make([]session, 0)
 	visitor := "Gustav Gans"
 	res := analyseLocationsByVisitor(visitor, &creds)
@@ -96,6 +89,10 @@ func TestAnalyseLocationsByVisitor(t *testing.T) {
 }
 
 func TestAnalyseVisitorsByLocation(t *testing.T) {
+	/*
+		Testfunction that validates, that the visitors that visited a queried
+		location will be interpreted correctly
+	*/
 	creds := make([]session, 0)
 	location := "Entenhausen"
 	res := analyseVisitorsByLocation(location, &creds)
@@ -123,10 +120,15 @@ func TestAnalyseVisitorsByLocation(t *testing.T) {
 }
 
 func TestIsOverlapping(t *testing.T) {
+	// Testfunction, that checks whether an overlap of contacts gets detected
 	assert.True(t, isOverlapping(&sessionA, &sessionB))
 }
 
 func TestCalculateOverlap(t *testing.T) {
+	/*
+		Testfunction that checks, whether the duration of the overlap of at
+		least two sessions will be calculated correctly
+	 */
 	overlap := calculateOverlap(&sessionA, &sessionB)
 	assert.EqualValues(t, 1*time.Hour, overlap)
 
@@ -148,6 +150,10 @@ func TestCalculateOverlap(t *testing.T) {
 }
 
 func TestGetOverlaps(t *testing.T) {
+	/*
+		Testfunction that checks if an overlap of contacts get detected and
+		returns the duration. If so, the duration will also get checked
+	 */
 	sessionA.TimeCome = startA
 	sessionA.TimeGone = endA
 	sessionB.TimeCome = startB
@@ -158,67 +164,4 @@ func TestGetOverlaps(t *testing.T) {
 	assert.EqualValues(t, 1, len(*contacts))
 	assert.EqualValues(t, 1*time.Hour, (*contacts)[0].duration)
 	assert.EqualValues(t, sessionB, (*contacts)[0].session)
-}
-
-func TestContactHandler(t *testing.T) {
-	config.ConfigureAnalysisTool()
-	*config.Operation = string(CONTACT)
-	*config.Query = "NameA"
-	sessions := make([]session, 2)
-	sessions[0] = sessionA
-	sessions[1] = sessionB
-
-	out := contactHandler(&sessions)
-	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, sessionB.Name, (*out)[0].session.Name)
-	assert.EqualValues(t, sessionB.Location, (*out)[0].session.Location)
-	assert.EqualValues(t, sessionB.Address, (*out)[0].session.Address)
-	assert.EqualValues(t, sessionB.TimeCome, (*out)[0].session.TimeCome)
-	assert.EqualValues(t, sessionB.TimeGone, (*out)[0].session.TimeGone)
-	assert.EqualValues(t, 1*time.Hour, (*out)[0].duration)
-}
-
-func TestVisitorHandler(t *testing.T) {
-	config.ConfigureAnalysisTool()
-	*config.Operation = string(VISITOR)
-	*config.Query = sessionA.Name
-	sessions := sessionsToSlice()
-
-	newLocation := "Different Location"
-	sessions = append(sessions, session{
-		Name:     nameA,
-		Address:  addressA,
-		Location: location.Location(newLocation),
-	})
-
-	out := visitorHandler(&sessions)
-	assert.EqualValues(t, 2, len(*out))
-	assert.EqualValues(t, sessionA.Location, (*out)[0])
-	assert.EqualValues(t, newLocation, (*out)[1])
-}
-
-func TestLocationHandler(t *testing.T) {
-	config.ConfigureAnalysisTool()
-	*config.Testcase = true
-	*config.Operation = string(VISITOR)
-	*config.Query = locationA
-	sessions := sessionsToSlice()
-	newVisitor := "Different Visitor"
-	sessions = append(sessions, session{
-		Name:     newVisitor,
-		Address:  addressA,
-		Location: location.Location(locationA),
-	})
-	out := locationHandler(&sessions)
-	assert.EqualValues(t, 3, len(*out))
-	assert.EqualValues(t, sessionA.Name, (*out)[0])
-	assert.EqualValues(t, sessionB.Name, (*out)[1])
-	assert.EqualValues(t, newVisitor, (*out)[2])
-}
-
-func sessionsToSlice() []session {
-	sessions := make([]session, 2)
-	sessions[0] = sessionA
-	sessions[1] = sessionB
-	return sessions
 }

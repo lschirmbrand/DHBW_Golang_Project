@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	DATEFORMAT         = "2006-01-02"
 	DATEFORMATWITHTIME = "02-01-2006 15:04:05"
 
 	defaultCheckinPort = 8443
@@ -50,8 +49,8 @@ var (
 	Query     *string
 	Testcase  *bool
 
-	parsedWeb          bool = false
-	parsedAnalysisTool bool = false
+	parsedWeb          = false
+	parsedAnalysisTool = false
 )
 
 func ConfigureWeb() {
@@ -82,6 +81,7 @@ func ConfigureAnalysisTool() {
 		Operation = flag.String("operation", defaultOperation, "Operation of the requested query. Format: Visitor or Location")
 		Query = flag.String("query", defaultQuery, "The keyword of the requested query.")
 		Testcase = flag.Bool("testcase", false, "Determines, whether output gets printed in the terminal.")
+		LogPath = flag.String("logpath", defaultLogsPath, "The default path of the log-files.")
 
 		configureMutual()
 
