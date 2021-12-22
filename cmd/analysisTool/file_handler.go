@@ -35,6 +35,9 @@ func readDataFromFile(filePath string) *[]string {
 }
 
 func writeSessionsToCSV(results *[]string, csvHeader *[]string, filePath string) {
+	if _, err := os.Stat(*config.LogPath); os.IsNotExist(err) {
+		os.MkdirAll(*config.LogPath, 0755)
+	}
 	f, e := os.Create(filePath)
 	check(e)
 	defer f.Close()

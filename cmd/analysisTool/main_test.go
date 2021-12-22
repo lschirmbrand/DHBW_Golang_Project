@@ -3,7 +3,6 @@ package main
 import (
 	"DHBW_Golang_Project/internal/config"
 	"DHBW_Golang_Project/internal/location"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -52,6 +51,7 @@ func TestContentToArray(t *testing.T) {
 }
 
 func TestStartAnalyticalToolDialog(t *testing.T) {
+	*config.Testcase = true
 	filePath := "../../" + buildFileLogPath(time.Now().Format(config.DATEFORMAT))
 	_, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	checkErrorForTest(err)
@@ -199,6 +199,7 @@ func TestVisitorHandler(t *testing.T) {
 
 func TestLocationHandler(t *testing.T) {
 	config.ConfigureAnalysisTool()
+	*config.Testcase = true
 	*config.Operation = string(VISITOR)
 	*config.Query = locationA
 	sessions := sessionsToSlice()
@@ -210,7 +211,6 @@ func TestLocationHandler(t *testing.T) {
 	})
 	out := locationHandler(&sessions)
 	assert.EqualValues(t, 3, len(*out))
-	fmt.Println(*out)
 	assert.EqualValues(t, sessionA.Name, (*out)[0])
 	assert.EqualValues(t, sessionB.Name, (*out)[1])
 	assert.EqualValues(t, newVisitor, (*out)[2])

@@ -69,8 +69,6 @@ func TestExportToCSVFile(t *testing.T) {
 	content, err := csvReader.ReadAll()
 	checkErrorForTest(err)
 
-	//assert.EqualValues(t, "Results for: "+selector, content[0][0])
-
 	for j := 0; j < len(content[0]); j++ {
 		assert.EqualValues(t, results[j], content[1][j])
 	}
@@ -110,7 +108,7 @@ func TestCreateCSVHeader(t *testing.T) {
 	*config.Operation = string(CONTACT)
 	out = createCSVHeader()
 	assert.EqualValues(t, 1, len(*out))
-	assert.EqualValues(t, string(CONTACT)+" for the user: "+*config.Query, (*out)[0])
+	assert.EqualValues(t, string(CONTACT)+"s for the user: "+*config.Query, (*out)[0])
 }
 
 func TestToSlice(t *testing.T) {

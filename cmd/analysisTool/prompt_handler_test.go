@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DHBW_Golang_Project/pkg/config"
+	"DHBW_Golang_Project/internal/config"
 	"io/ioutil"
 	"log"
 	"os"
