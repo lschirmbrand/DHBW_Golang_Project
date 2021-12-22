@@ -26,7 +26,9 @@ func exportLocations(qryResults *[]string) {
 }
 
 func exportVisitors(qryResults *[]string) {
-	fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
+	if !*config.Testcase {
+		fmt.Println("\nResults of query for: " + *config.Operation + " = " + *config.Query + ":\n")
+	}
 	for _, out := range *qryResults {
 		fmt.Println(out)
 	}
@@ -45,19 +47,28 @@ func assertQueryExport(s *[]string) bool {
 		if exportHandler(qLen) {
 			return true
 		} else {
-			fmt.Println("Results of query wont get exported. \nAborting.")
+			if !*config.Testcase {
+				fmt.Println("Results of query wont get exported. \nAborting.")
+			}
 			return false
 		}
 	} else {
-		fmt.Println("No results were found for the queried selector.")
+		if !*config.Testcase {
+			fmt.Println("No results were found for the queried selector.")
+		}
 		return false
 	}
 }
 
 func exportHandler(length int) bool {
-	fmt.Println("The requested query resulted in ", length, " elements.")
-	fmt.Println("Do you want to additionally export the query to csv? [y/n]")
+	if !*config.Testcase {
+		fmt.Println("The requested query resulted in ", length, " elements.")
+		fmt.Println("Do you want to additionally export the query to csv? [y/n]")
+	}
 	reader := bufio.NewReader(os.Stdin)
+	if *config.Testcase {
+		return true
+	}
 	for {
 		input, e := reader.ReadString('\n')
 		check(e)
