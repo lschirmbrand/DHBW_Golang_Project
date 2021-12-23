@@ -30,6 +30,7 @@ func buildFileCSVPath() string {
 
 func readDataFromFile(filePath string) *[]string {
 	// Function reads the content of a file
+
 	text, err := ioutil.ReadFile(filePath)
 	check(err)
 	out := strings.Split(string(text), "\n")
