@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+/*
+	Erstellt von: 	8864957
+	Created by:		8864957
+
+	also: 4775194, 9514094
+*/
+
 const (
 	DATEFORMATWITHTIME = "02-01-2006 15:04:05"
 

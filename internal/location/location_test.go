@@ -6,6 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	8864957
+	Created by:		8864957
+
+	also: 4775194, 9514094
+*/
+
 func TestReadLocationsFromReader(t *testing.T) {
 	st := NewLocationStore("test_assets/locations_test.xml")
 

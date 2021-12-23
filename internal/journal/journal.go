@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+
+	also: 8864957, 9514094
+*/
+
 type Journal interface {
 	LogIn(cred *Credentials) bool
 	LogOut(cred *Credentials) bool

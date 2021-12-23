@@ -8,6 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+
+	also: 8864957, 9514094
+*/
+
 var (
 	testLogPath = "./test-logs"
 )
