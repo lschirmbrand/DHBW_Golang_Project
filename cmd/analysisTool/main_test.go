@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 var (
 	startA    = time.Date(2021, time.January, 20, 20, 0, 0, 0, time.Local)
 	endA      = time.Date(2021, time.January, 20, 22, 0, 0, 0, time.Local)

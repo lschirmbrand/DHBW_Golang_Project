@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+ */
+
 func contactHandler(sessions *[]session) *[]contact {
 	// Function initiates the contact verification
 	contacts := make([]contact, 0)

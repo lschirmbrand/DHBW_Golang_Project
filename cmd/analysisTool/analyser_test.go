@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 var (
 	testExportPath = "./test-export"
 )

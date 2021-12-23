@@ -11,6 +11,11 @@ import (
 	"strings"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 func buildFileLogPath(date string) string {
 	// Helper-Function for the creation of the logpath
 	return path.Join(*config.LogPath, "logs-"+date+".txt")

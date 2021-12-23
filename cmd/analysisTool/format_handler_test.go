@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 func TestCheckFlagFunctionality(t *testing.T) {
 	/*
 		It's important for the tool, that the flags are set correctly.
