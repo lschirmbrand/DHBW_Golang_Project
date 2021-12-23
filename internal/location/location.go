@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+/*
+	Erstellt von: 	8864957
+	Created by:		8864957
+
+	also: 4775194, 9514094
+*/
+
 type xmlLocations struct {
 	XMLName   xml.Name   `xml:"locations"`
 	Locations []Location `xml:"location"`

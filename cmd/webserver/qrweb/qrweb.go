@@ -14,6 +14,13 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
+/*
+	Erstellt von: 	9514094
+	Created by:		9514094
+
+	also: 4775194, 8864957
+*/
+
 var (
 	qrTemplate, locsTemplate *template.Template
 	checkinUrls              map[location.Location]string

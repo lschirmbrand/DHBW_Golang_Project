@@ -7,7 +7,12 @@ import (
 	"time"
 )
 
-const ()
+/*
+	Erstellt von: 	8864957
+	Created by:		8864957
+
+	also: 4775194, 9514094
+*/
 
 type CookieStore struct {
 	cookieLifetime time.Duration

@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	9514094
+	Created by:		9514094
+
+	also: 4775194, 8864957
+*/
 var st *location.LocationStore
 
 func SetupTest() {

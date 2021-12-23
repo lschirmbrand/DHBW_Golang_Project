@@ -11,6 +11,8 @@ import (
 /*
 	Erstellt von: 	4775194
 	Created by:		4775194
+
+	also: 9514094, 8864957
  */
 
 func contactHandler(sessions *[]session) *[]contact {

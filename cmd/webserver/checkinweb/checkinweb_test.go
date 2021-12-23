@@ -17,6 +17,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+/*
+	Erstellt von: 	8864957
+	Created by:		8864957
+
+	also: 4775194, 9514094
+*/
+
 func createServerValidationWrapper(validator token.Validator) *httptest.Server {
 	return httptest.NewServer(
 		tokenValidationWrapper(
