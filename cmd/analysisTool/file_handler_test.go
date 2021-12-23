@@ -14,6 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 func TestReadDataFromFile(t *testing.T) {
 	/*
 		Testfunction validates that the imported content will

@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 type Operation string
 
 type contact struct {

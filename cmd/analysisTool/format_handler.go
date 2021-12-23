@@ -5,6 +5,11 @@ import (
 	"regexp"
 )
 
+/*
+	Erstellt von: 	4775194
+	Created by:		4775194
+*/
+
 func checkFlagFunctionality() (bool, *[]string) {
 	/*
 		The function is used at the start of the execution
