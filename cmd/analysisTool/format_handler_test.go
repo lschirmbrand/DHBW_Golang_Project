@@ -23,13 +23,18 @@ func TestCheckFlagFunctionality(t *testing.T) {
 		Therefore, the flags get changed: correct <--> incorrect
 	 */
 	config.ConfigureAnalysisTool()
-	*config.LogPath = "../../" + *config.LogPath
+	*config.LogPath = testlogPath
 	date := "2021-10-29"
 
+	if _, err := os.Stat(*config.LogPath); os.IsNotExist(err) {
+		os.MkdirAll(*config.LogPath, 0755)
+	}
+
 	defer func(path string) {
-		err := os.Remove(path)
+		err := os.RemoveAll(path)
 		checkErrorForTest(err)
-	}(buildFileLogPath(date))
+	}(*config.LogPath)
+
 	f, err := os.Create(buildFileLogPath(date))
 	checkErrorForTest(err)
 	f.Close()

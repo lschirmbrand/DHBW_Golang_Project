@@ -5,7 +5,6 @@ import (
 	"DHBW_Golang_Project/internal/location"
 	"encoding/csv"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -27,20 +26,26 @@ func TestReadDataFromFile(t *testing.T) {
 		be interpreted correctly
 	*/
 	config.ConfigureAnalysisTool()
+	*config.LogPath = testlogPath
+
+	defer func(path string) {
+		err := os.RemoveAll(path)
+		checkErrorForTest(err)
+	}(*config.LogPath)
+
 	in := "value1-x-y-z;\nvalue2.,!?;\nvalue3\t;\n"
 	expected := strings.Split(in, "\n")
-	filePath := filepath.Join("../../logs/temporaryForTest.txt")
+	//filePath := filepath.Join("../../logs/temporaryForTest.txt")
+	if _, err := os.Stat(*config.LogPath); os.IsNotExist(err) {
+		os.MkdirAll(*config.LogPath, 0755)
+	}
+	filePath := buildFileLogPath(*config.Date)
 	f, _ := os.Create(filePath)
 	_, e := f.WriteString(in)
-	check(e)
-	defer func(name string) {
-		err := os.Remove(name)
-		checkErrorForTest(err)
-	}(filePath)
-	defer func(f *os.File) {
-		err := f.Close()
-		checkErrorForTest(err)
-	}(f)
+	checkErrorForTest(e)
+
+	err := f.Close()
+	checkErrorForTest(err)
 
 	out := *readDataFromFile(filePath)
 	for i := 0; i < len(out)-1; i++ {
