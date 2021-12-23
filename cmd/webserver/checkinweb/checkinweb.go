@@ -93,7 +93,7 @@ func Mux() http.Handler {
 func parseTemplates(templateDir string) {
 	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
 	checkedInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedin.html")))
-	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
+	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedout.html")))
 }
 
 // handler function for GET /checkin
