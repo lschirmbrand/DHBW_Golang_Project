@@ -23,6 +23,7 @@ type CookieStore struct {
 	CityKey        string
 }
 
+// Konstructro for CookieStore
 func NewCookieStore(cookieLifeSeconds int) *CookieStore {
 	return &CookieStore{
 		cookieLifetime: time.Hour * time.Duration(cookieLifeSeconds),
@@ -34,6 +35,7 @@ func NewCookieStore(cookieLifeSeconds int) *CookieStore {
 	}
 }
 
+// Save Person to Cookies
 func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *person.P) {
 
 	firstNameCookie := http.Cookie{
@@ -69,6 +71,7 @@ func (cs CookieStore) SaveToCookies(rw http.ResponseWriter, p *person.P) {
 	http.SetCookie(rw, &cityCookie)
 }
 
+// read Person from Cookies
 func (cs CookieStore) ReadFromCookies(r *http.Request) *person.P {
 	p := person.P{
 		Firstname: "",

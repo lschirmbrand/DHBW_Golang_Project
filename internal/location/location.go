@@ -23,6 +23,7 @@ type LocationStore struct {
 	Locations []Location
 }
 
+// constructor for LocationStore
 func NewLocationStore(filepath string) *LocationStore {
 	locs, _ := readLocations(filepath)
 	return &LocationStore{
@@ -30,6 +31,17 @@ func NewLocationStore(filepath string) *LocationStore {
 	}
 }
 
+// checks if given location exists
+func (st LocationStore) Validate(expLocations Location) bool {
+	for _, actLocation := range st.Locations {
+		if actLocation == expLocations {
+			return true
+		}
+	}
+	return false
+}
+
+// reads Locations from xml file
 func readLocations(filepath string) ([]Location, error) {
 	file, err := os.Open(filepath)
 
@@ -50,13 +62,4 @@ func readLocations(filepath string) ([]Location, error) {
 	xml.Unmarshal(byteValue, &xmlLocs)
 
 	return xmlLocs.Locations, nil
-}
-
-func (st LocationStore) Validate(expLocations Location) bool {
-	for _, actLocation := range st.Locations {
-		if actLocation == expLocations {
-			return true
-		}
-	}
-	return false
 }

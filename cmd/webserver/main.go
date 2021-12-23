@@ -13,8 +13,10 @@ import (
 )
 
 func main() {
+	// configure and parse flags
 	config.ConfigureWeb()
 
+	// setup configurations for muxs
 	jour := journal.NewLogFileJournal(*config.LogPath)
 	locationStore := location.NewLocationStore(*config.LocationFilePath)
 

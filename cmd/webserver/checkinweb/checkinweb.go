@@ -22,6 +22,7 @@ import (
 	also: 4775194, 9514094
 */
 
+// Data for CheckIn Template
 type CheckInPageData struct {
 	Person       person.P
 	Location     string
@@ -29,12 +30,14 @@ type CheckInPageData struct {
 	InvalidInput bool
 }
 
+// Data for CheckedIn Template
 type CheckedInPageData struct {
 	Person   person.P
 	Location string
 	Time     string
 }
 
+// data for CheckedOut Template
 type CheckedoutPageData struct {
 	Person   person.P
 	Location string
@@ -67,6 +70,7 @@ type CheckInMuxCfg struct {
 	CookieLifetime int
 }
 
+// Intitialization Function for Mux and Handlers
 func Setup(j journal.Journal, locStore *location.LocationStore, cfg *CheckInMuxCfg) {
 	jour = j
 	parseTemplates(cfg.TempaltePath)
@@ -74,6 +78,7 @@ func Setup(j journal.Journal, locStore *location.LocationStore, cfg *CheckInMuxC
 	locationStore = locStore
 }
 
+// Creates a http.Handler with checkin, checkedin and checkedout routes
 func Mux() http.Handler {
 	mux := http.NewServeMux()
 
@@ -84,13 +89,14 @@ func Mux() http.Handler {
 	return mux
 }
 
+// parse Templates for checkin, checkout and checkedin pages
 func parseTemplates(templateDir string) {
 	checkInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkin.html")))
 	checkedInTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedin.html")))
 	checkedOutTemplate = template.Must(template.ParseFiles(path.Join(templateDir, "checkedOut.html")))
 }
 
-// handler function for /checkin route
+// handler function for GET /checkin
 func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	// only GET allowed
@@ -119,6 +125,7 @@ func checkInHandler(rw http.ResponseWriter, r *http.Request) {
 	checkInTemplate.Execute(rw, data)
 }
 
+// handler for POST /checkedin
 func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 	// only POST allowed
@@ -179,6 +186,7 @@ func checkedInHandler(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+// handler for /checkedout
 func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -209,6 +217,7 @@ func checkedOutHandler(rw http.ResponseWriter, r *http.Request) {
 	checkedOutTemplate.Execute(rw, data)
 }
 
+// Wrapper which takes a validator func to validate the token from URL params and calls given handerFunc
 func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -230,6 +239,7 @@ func tokenValidationWrapper(validator token.Validator, handler http.HandlerFunc)
 	}
 }
 
+// validation function for user input
 func validateFormInput(p person.P) bool {
 
 	namePattern := regexp.MustCompile(`^[\wÄÖÜäöüß\-\s]+$`)
